@@ -1,0 +1,1050 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1400</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>STM32 SecureLink - Interface de Pilotage Securise</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QMainWindow {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1a1a2e, stop:1 #16213e);
+}
+QGroupBox {
+    font-weight: bold;
+    font-size: 10pt;
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    margin-top: 10px;
+    padding-top: 12px;
+    background-color: #16213e;
+    color: #e94560;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 5px 12px;
+    color: #00d9ff;
+    font-size: 11pt;
+}
+QTabWidget::pane {
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    background-color: #16213e;
+}
+QTabBar::tab {
+    background-color: #0f3460;
+    color: #ffffff;
+    padding: 10px 20px;
+    margin-right: 4px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-weight: bold;
+    font-size: 10pt;
+}
+QTabBar::tab:selected {
+    background-color: #e94560;
+    color: #ffffff;
+}
+QTabBar::tab:hover {
+    background-color: #00d9ff;
+    color: #000000;
+}
+QPushButton {
+    background-color: #0f3460;
+    color: #ffffff;
+    border: 2px solid #00d9ff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 9pt;
+    min-width: 100px;
+    min-height: 32px;
+}
+QPushButton:hover {
+    background-color: #00d9ff;
+    color: #000000;
+}
+QPushButton:pressed {
+    background-color: #e94560;
+}
+QPushButton:disabled {
+    background-color: #2d3748;
+    color: #718096;
+    border: 2px solid #4a5568;
+}
+#connectButton {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+#connectButton:hover {
+    background-color: #059669;
+}
+#authenticateButton {
+    background-color: #8b5cf6;
+    border-color: #8b5cf6;
+}
+QLineEdit, QComboBox {
+    border: 2px solid #0f3460;
+    border-radius: 6px;
+    padding: 6px;
+    background-color: #1a1a2e;
+    color: #ffffff;
+    font-size: 10pt;
+}
+QLineEdit:focus, QComboBox:focus {
+    border: 2px solid #00d9ff;
+}
+QTextEdit {
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    background-color: #0a0e27;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+    padding: 8px;
+}
+QLabel {
+    color: #ffffff;
+    font-size: 10pt;
+}
+QLCDNumber {
+    border: 2px solid #0f3460;
+    border-radius: 6px;
+    background-color: #0a0e27;
+    color: #00d9ff;
+}
+   </string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="mainLayout">
+    <item>
+     <widget class="QFrame" name="headerFrame">
+      <property name="minimumHeight">
+       <number>80</number>
+      </property>
+      <property name="maximumHeight">
+       <number>80</number>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame { background-color: #16213e; border: 2px solid #0f3460; border-radius: 10px; }</string>
+      </property>
+      <layout class="QHBoxLayout" name="headerLayout">
+       <item>
+        <widget class="QLabel" name="logoLabel">
+         <property name="text">
+          <string>STM32 SecureLink</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 16pt; font-weight: bold; color: #00d9ff;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="headerSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="connIndicator">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #ef4444; border-radius: 10px; border: 2px solid #dc2626;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="authIndicator">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #6b7280; border-radius: 10px;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="encryptIndicator">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #6b7280; border-radius: 10px;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="threatIndicator">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #10b981; border-radius: 10px;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="sessionTimeLabel">
+         <property name="text">
+          <string>Session: -- | Uptime: N/A</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="portComboBox">
+         <property name="minimumWidth">
+          <number>140</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="connectButton">
+         <property name="text">
+          <string>Connecter</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="mainTabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="monitoringTab">
+       <attribute name="title">
+        <string>Monitoring</string>
+       </attribute>
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="QGroupBox" name="serialMonitorGroup">
+          <property name="title">
+           <string>Moniteur Serie</string>
+          </property>
+          <layout class="QVBoxLayout">
+           <item>
+            <widget class="QTextEdit" name="receiveTextEdit">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout">
+             <item>
+              <widget class="QLineEdit" name="commandLineEdit">
+               <property name="placeholderText">
+                <string>Commande...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="sendButton">
+               <property name="text">
+                <string>Envoyer</string>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="clearButton">
+               <property name="text">
+                <string>Effacer</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="controlPanelGroup">
+          <property name="title">
+           <string>Controles</string>
+          </property>
+          <property name="minimumWidth">
+           <number>320</number>
+          </property>
+          <property name="maximumWidth">
+           <number>350</number>
+          </property>
+          <layout class="QVBoxLayout">
+           <item>
+            <widget class="QGroupBox" name="quickCommandsGroup">
+             <property name="title">
+              <string>Commandes Rapides</string>
+             </property>
+             <layout class="QGridLayout">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="getTempButton">
+                <property name="text">
+                 <string>TEMP</string>
+                </property>
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="getVoltageButton">
+                <property name="text">
+                 <string>VOLTAGE</string>
+                </property>
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QPushButton" name="getStatusButton">
+                <property name="text">
+                 <string>STATUS</string>
+                </property>
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="ledControlGroup">
+             <property name="title">
+              <string>Controle LED</string>
+             </property>
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QPushButton" name="ledOnButton">
+                <property name="text">
+                 <string>ON</string>
+                </property>
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: #10b981;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="ledOffButton">
+                <property name="text">
+                 <string>OFF</string>
+                </property>
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: #ef4444;</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="pwmControlGroup">
+             <property name="title">
+              <string>Controle PWM</string>
+             </property>
+             <layout class="QVBoxLayout">
+              <item>
+               <widget class="QSlider" name="pwmSlider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="value">
+                 <number>50</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLCDNumber" name="pwmValueLCD">
+                <property name="minimumHeight">
+                 <number>45</number>
+                </property>
+                <property name="intValue" stdset="0">
+                 <number>50</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="pwmValueLabel">
+                <property name="text">
+                 <string>Duty Cycle: 50%</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="resetButton">
+             <property name="text">
+              <string>RESET STM32</string>
+             </property>
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: #f59e0b;</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="securityTab">
+       <attribute name="title">
+        <string>Securite</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="securityLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="securityTopLayout">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <item>
+           <widget class="QGroupBox" name="authGroup">
+            <property name="title">
+             <string>Authentification</string>
+            </property>
+            <property name="minimumWidth">
+             <number>400</number>
+            </property>
+            <property name="maximumWidth">
+             <number>400</number>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QGroupBox { background-color: #1a1a2e; border: 2px solid #8b5cf6; border-radius: 10px; } QGroupBox::title { color: #8b5cf6; }</string>
+            </property>
+            <layout class="QVBoxLayout" name="authLayout">
+             <property name="spacing">
+              <number>15</number>
+             </property>
+             <property name="leftMargin">
+              <number>20</number>
+             </property>
+             <property name="rightMargin">
+              <number>20</number>
+             </property>
+             <property name="topMargin">
+              <number>20</number>
+             </property>
+             <property name="bottomMargin">
+              <number>20</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="authIconLabel">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="minimumHeight">
+                <number>60</number>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 48pt; color: #8b5cf6;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="authStatusFrame">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QFrame { background-color: #0a0e27; border: 2px solid #ef4444; border-radius: 8px; padding: 15px; }</string>
+               </property>
+               <layout class="QVBoxLayout">
+                <item>
+                 <widget class="QLabel" name="authStatusLabel">
+                  <property name="text">
+                   <string>NON AUTHENTIFIE</string>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 14pt; font-weight: bold; color: #ef4444; border: none; background: transparent;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="authSubtitleLabel">
+                  <property name="text">
+                   <string>Connectez-vous pour acceder aux controles</string>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 9pt; color: #a0aec0; border: none; background: transparent;</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="formLayout">
+               <property name="spacing">
+                <number>12</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_username">
+                 <property name="text">
+                  <string>Nom d'utilisateur</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 10pt; font-weight: bold; color: #00d9ff;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="usernameLineEdit">
+                 <property name="placeholderText">
+                  <string>Entrez votre nom d'utilisateur</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QLineEdit { background-color: #0a0e27; border: 2px solid #0f3460; border-radius: 6px; padding: 10px; font-size: 11pt; color: #ffffff; } QLineEdit:focus { border: 2px solid #8b5cf6; }</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_password">
+                 <property name="text">
+                  <string>Mot de passe</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 10pt; font-weight: bold; color: #00d9ff;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="passwordLineEdit">
+                 <property name="echoMode">
+                  <enum>QLineEdit::Password</enum>
+                 </property>
+                 <property name="placeholderText">
+                  <string>Entrez votre mot de passe</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QLineEdit { background-color: #0a0e27; border: 2px solid #0f3460; border-radius: 6px; padding: 10px; font-size: 11pt; color: #ffffff; } QLineEdit:focus { border: 2px solid #8b5cf6; }</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="authenticateButton">
+                 <property name="text">
+                  <string>SE CONNECTER</string>
+                 </property>
+                 <property name="minimumHeight">
+                  <number>50</number>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8b5cf6, stop:1 #7c3aed); color: #ffffff; border: none; border-radius: 8px; font-size: 12pt; font-weight: bold; } QPushButton:hover { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #7c3aed, stop:1 #6d28d9); } QPushButton:pressed { background: #6d28d9; }</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="authInfoLabel">
+               <property name="text">
+                <string>Credentials par defaut: admin / password</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 8pt; color: #f59e0b; font-style: italic; background-color: rgba(245, 158, 11, 0.1); padding: 8px; border-radius: 4px;</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="authSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="securityDashboardGroup">
+            <property name="title">
+             <string>Tableau de Bord Securite</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QGroupBox { background-color: #1a1a2e; border: 2px solid #00d9ff; border-radius: 10px; } QGroupBox::title { color: #00d9ff; }</string>
+            </property>
+            <layout class="QVBoxLayout" name="securityDashboardLayout">
+             <property name="spacing">
+              <number>15</number>
+             </property>
+             <property name="leftMargin">
+              <number>15</number>
+             </property>
+             <property name="rightMargin">
+              <number>15</number>
+             </property>
+             <item>
+              <layout class="QGridLayout" name="statsCardsLayout">
+               <property name="spacing">
+                <number>10</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QFrame" name="failedAuthCard">
+                 <property name="minimumHeight">
+                  <number>100</number>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QFrame { background-color: #0a0e27; border: 2px solid #ef4444; border-radius: 8px; padding: 10px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout">
+                  <item>
+                   <widget class="QLabel">
+                    <property name="text">
+                     <string>Tentatives echouees</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 9pt; color: #a0aec0; border: none; background: transparent;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="failedAuthCountLabel">
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 28pt; font-weight: bold; color: #ef4444; border: none; background: transparent;</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QFrame" name="malformedPacketsCard">
+                 <property name="minimumHeight">
+                  <number>100</number>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QFrame { background-color: #0a0e27; border: 2px solid #f59e0b; border-radius: 8px; padding: 10px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout">
+                  <item>
+                   <widget class="QLabel">
+                    <property name="text">
+                     <string>Paquets malformes</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 9pt; color: #a0aec0; border: none; background: transparent;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="malformedPacketsCountLabel">
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 28pt; font-weight: bold; color: #f59e0b; border: none; background: transparent;</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="1" column="0" colspan="2">
+                <widget class="QFrame" name="successfulCommandsCard">
+                 <property name="minimumHeight">
+                  <number>100</number>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QFrame { background-color: #0a0e27; border: 2px solid #10b981; border-radius: 8px; padding: 10px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout">
+                  <item>
+                   <widget class="QLabel">
+                    <property name="text">
+                     <string>Commandes reussies</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 9pt; color: #a0aec0; border: none; background: transparent;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="successfulCommandsCountLabel">
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 28pt; font-weight: bold; color: #10b981; border: none; background: transparent;</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QFrame" name="securityLevelFrame">
+               <property name="styleSheet">
+                <string notr="true">QFrame { background-color: #0a0e27; border: 2px solid #0f3460; border-radius: 8px; padding: 15px; }</string>
+               </property>
+               <layout class="QVBoxLayout">
+                <item>
+                 <widget class="QLabel" name="label_security_level">
+                  <property name="text">
+                   <string>Niveau de Securite Global</string>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 11pt; font-weight: bold; color: #00d9ff; border: none; background: transparent;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QProgressBar" name="securityLevelBar">
+                  <property name="value">
+                   <number>100</number>
+                  </property>
+                  <property name="format">
+                   <string>%p% - SECURISE</string>
+                  </property>
+                  <property name="minimumHeight">
+                   <number>40</number>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QProgressBar { border: none; border-radius: 8px; text-align: center; background-color: #16213e; color: #ffffff; font-weight: bold; font-size: 11pt; } QProgressBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10b981, stop:1 #059669); border-radius: 8px; }</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer>
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="securityLogsGroup">
+          <property name="title">
+           <string>Journal de Securite</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QGroupBox { background-color: #1a1a2e; border: 2px solid #e94560; border-radius: 10px; } QGroupBox::title { color: #e94560; }</string>
+          </property>
+          <layout class="QVBoxLayout" name="securityLogsLayout">
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item>
+            <widget class="QTextEdit" name="securityLogsTextEdit">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+             <property name="placeholderText">
+              <string>Les evenements de securite s'afficheront ici...</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QTextEdit { background-color: #0a0e27; border: 2px solid #0f3460; border-radius: 8px; color: #00d9ff; font-family: 'Courier New', monospace; font-size: 10pt; padding: 10px; }</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="securityLogsControlsLayout">
+             <property name="spacing">
+              <number>10</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="clearSecLogsButton">
+               <property name="text">
+                <string>Effacer Logs</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton { background-color: #ef4444; border-color: #ef4444; } QPushButton:hover { background-color: #dc2626; }</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="exportSecLogsButton">
+               <property name="text">
+                <string>Exporter Logs</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="secLogsSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="autoScrollLogsCheckBox">
+               <property name="text">
+                <string>Auto-scroll</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QCheckBox { color: #ffffff; font-size: 10pt; } QCheckBox::indicator { width: 20px; height: 20px; border: 2px solid #0f3460; border-radius: 4px; background-color: #1a1a2e; } QCheckBox::indicator:checked { background-color: #00d9ff; border-color: #00d9ff; }</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="configTab">
+       <attribute name="title">
+        <string>Configuration</string>
+       </attribute>
+       <layout class="QVBoxLayout">
+        <item>
+         <widget class="QGroupBox" name="connectionSettingsGroup">
+          <property name="title">
+           <string>Parametres de Connexion</string>
+          </property>
+          <layout class="QFormLayout">
+           <item row="0" column="0">
+            <widget class="QLabel">
+             <property name="text">
+              <string>Port Serie:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="portComboBox_config"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel">
+             <property name="text">
+              <string>Baud Rate:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="baudRateComboBox">
+             <item>
+              <property name="text">
+               <string>9600</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>115200</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>230400</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="refreshPortsButton">
+             <property name="text">
+              <string>Rafraichir Ports</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="securityStatsGroup">
+          <property name="title">
+           <string>Statistiques de Securite</string>
+          </property>
+          <layout class="QVBoxLayout">
+           <item>
+            <widget class="QTableWidget" name="securityStatsTable">
+             <property name="styleSheet">
+              <string notr="true">QTableWidget { background-color: #0a0e27; border: 2px solid #0f3460; color: #ffffff; gridline-color: #0f3460; } QHeaderView::section { background-color: #16213e; color: #00d9ff; font-weight: bold; border: 1px solid #0f3460; }</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1400</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFichier">
+    <property name="title">
+     <string>Fichier</string>
+    </property>
+    <addaction name="actionExportLogs"/>
+    <addaction name="actionQuitter"/>
+   </widget>
+   <widget class="QMenu" name="menuSecurite">
+    <property name="title">
+     <string>Securite</string>
+    </property>
+    <addaction name="actionAuthentifier"/>
+    <addaction name="actionRapportSecurite"/>
+   </widget>
+   <addaction name="menuFichier"/>
+   <addaction name="menuSecurite"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionExportLogs">
+   <property name="text">
+    <string>Exporter les logs</string>
+   </property>
+  </action>
+  <action name="actionQuitter">
+   <property name="text">
+    <string>Quitter</string>
+   </property>
+  </action>
+  <action name="actionAuthentifier">
+   <property name="text">
+    <string>Authentifier</string>
+   </property>
+  </action>
+  <action name="actionRapportSecurite">
+   <property name="text">
+    <string>Rapport de securite</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

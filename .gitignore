@@ -1,0 +1,35 @@
+# Build directories
+build/
+build-*/
+.pio/
+cmake-build-*/
+
+# IDE files
+.vscode/
+.idea/
+*.user
+CMakeLists.txt.user
+.qtcreator/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled binaries
+*.bin
+*.elf
+*.hex
+*.o
+*.obj
+*.exe
+*.sha256
+firmware_signed*
+
+# AI tooling artifacts
+.claude/
+CLAUDE.md
+.aider*
+.cursor/
+
+# Logs
+*.log
