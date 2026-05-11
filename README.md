@@ -27,6 +27,25 @@ This monorepo contains two complementary projects:
 └─────────────────────────┘         └──────────────────────────┘
 ```
 
+## Screenshots
+
+<table>
+<tr>
+<td colspan="2"><img src="docs/screenshots/monitoring_dashboard.png" alt="Real-time monitoring and device control" width="100%"/></td>
+</tr>
+<tr>
+<td colspan="2" align="center"><i>Real-time monitoring and device control</i></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/configuration_panel.png" alt="Serial, security and protocol settings" width="100%"/></td>
+<td><img src="docs/screenshots/security_dashboard.png" alt="Authentication and security event logging" width="100%"/></td>
+</tr>
+<tr>
+<td align="center"><i>Serial, security and protocol settings</i></td>
+<td align="center"><i>Authentication and security event logging</i></td>
+</tr>
+</table>
+
 ## Repository Structure
 
 ```
