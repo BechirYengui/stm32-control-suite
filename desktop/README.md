@@ -1,4 +1,4 @@
-# Interface de Pilotage et Supervision STM32
+# STM32 Desktop Interface
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 [![Qt](https://img.shields.io/badge/Qt-5.15+-green.svg)](https://www.qt.io/)
@@ -7,25 +7,24 @@
 
 ## 📋 Description
 
-Interface IHM professionnelle en C++/Qt pour le pilotage, le paramétrage et la supervision en temps réel d'un microcontrôleur STM32. Le projet implémente une architecture logicielle modulaire (MVC) avec une couche de communication robuste basée sur DMA, interruptions, et protocole JSON.
+C++/Qt desktop application for monitoring and controlling an STM32 microcontroller over a serial link. It follows an MVC architecture with a communication layer built on DMA, interrupts and a JSON wire protocol.
 
-### 🎯 Fonctionnalités principales
+### Main features
 
-- **Communication série asynchrone** avec threading (QThread) pour des performances optimales
-- **Protocole JSON** pour échanges de données structurées
-- **Architecture MVC** claire et maintenable
-- **DMA + Interruptions** côté STM32 pour efficacité maximale
-- **Interface graphique** double : Qt Widgets et QML
-- **Graphiques temps réel** des mesures (température, tension, PWM)
-- **Historique des données** avec statistiques
-- **Configuration flexible** des paramètres de communication
-- **Gestion d'erreurs robuste** avec feedback utilisateur
+- Asynchronous serial communication running on a dedicated `QThread`
+- JSON protocol for structured commands and responses
+- Clear MVC separation
+- Two view options: Qt Widgets (default) and a minimal QML view
+- In-memory history of measurements with basic statistics
+- Configurable serial parameters
+- Error feedback surfaced to the UI
+- Unit tests (QtTest), Doxygen config, etc.
 
 ---
 
-## 🏗️ Architecture du Projet
+## 🏗️ Architecture
 
-### Structure MVC (Model-View-Controller)
+### MVC structure
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -36,8 +35,8 @@ Interface IHM professionnelle en C++/Qt pour le pilotage, le paramétrage et la 
 │  │     VIEW     │◄──►│  CONTROLLER  │◄──►│    MODEL     │  │
 │  │              │    │              │    │              │  │
 │  │ MainWindow   │    │   Device     │    │ DeviceState  │  │
-│  │ ChartWidget  │    │  Controller  │    │  DataModel   │  │
-│  │ QML Interface│    │              │    │              │  │
+│  │ QML Interface│    │  Controller  │    │  DataModel   │  │
+│  │              │    │              │    │              │  │
 │  └──────────────┘    └───────┬──────┘    └──────────────┘  │
 │                              │                               │
 │                              ▼                               │
@@ -61,171 +60,133 @@ Interface IHM professionnelle en C++/Qt pour le pilotage, le paramétrage et la 
               ┌─────────────────────────────────┐
               │         STM32F1xx               │
               │                                 │
-              │  ├─ UART RX/TX avec DMA         │
-              │  ├─ ADC avec DMA                │
+              │  ├─ UART RX/TX with DMA         │
+              │  ├─ ADC with DMA                │
               │  ├─ PWM (TIM2)                  │
-              │  ├─ Protocole JSON              │
-              │  └─ Gestion interruptions       │
+              │  ├─ JSON protocol               │
+              │  └─ Interrupt handling          │
               └─────────────────────────────────┘
 ```
 
-### Composants principaux
+### Components
 
-#### 1. **Model (Modèle de données)**
-- `DeviceState`: État complet du dispositif STM32
-- `DataModel`: Historique des mesures avec statistiques
+**Model.** `DeviceState` holds the current device snapshot (temperature, voltage, PWM duty, LED state). `DataModel` keeps a rolling history of measurements with basic stats.
 
-#### 2. **View (Interface utilisateur)**
-- `MainWindow`: Interface Qt Widgets principale
-- `ChartWidget`: Graphiques temps réel (optionnel)
-- QML Interface: Interface moderne alternative
+**View.** `MainWindow` is the main Qt Widgets UI. An optional minimal QML view (`qml/main.qml`) reuses the same `DeviceState` exposed as a context property.
 
-#### 3. **Controller (Logique métier)**
-- `DeviceController`: Coordonne modèle et communication
-- Parse les réponses JSON
-- Gère la logique applicative
+**Controller.** `DeviceController` glues the model and the communication layer together. It parses JSON responses and emits high-level signals consumed by the views.
 
-#### 4. **Communication Layer**
-- `SerialManager`: Gestionnaire haut niveau
-- `SerialWorker`: Worker thread pour I/O série
-- `JsonProtocol`: Encodage/décodage JSON
-- `QSerialPort`: Driver série Qt
+**Communication.** `SerialManager` is the high-level facade; the actual I/O runs in `SerialWorker` on its own thread. `JsonProtocol` handles encoding and decoding. The underlying driver is Qt's `QSerialPort`.
 
 ---
 
-## 🚀 Installation et Compilation
+## 🚀 Installation
 
-### Prérequis
+### Requirements
 
-- **Qt 5.15+** avec les modules suivants:
-  - Qt Core
-  - Qt Widgets
-  - Qt SerialPort
-  - Qt Qml / Quick (optionnel)
-  - Qt Charts (optionnel)
-  
-- **CMake 3.16+**
-- **Compilateur C++17** (GCC 7+, Clang 5+, MSVC 2017+)
+- Qt 5.15+ with Core, Widgets and SerialPort (plus Qml/Quick if you want the QML view)
+- CMake 3.16+
+- A C++17 compiler (GCC 7+, Clang 5+, MSVC 2017+)
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# Installation des dépendances
 sudo apt update
 sudo apt install qt5-default qtbase5-dev libqt5serialport5-dev
 sudo apt install cmake build-essential git
 
-# Modules optionnels
-sudo apt install qtdeclarative5-dev qml-module-qtquick2
-sudo apt install libqt5charts5-dev
+# Optional: QML view
+sudo apt install qtdeclarative5-dev qml-module-qtquick2 \
+                 qml-module-qtquick-controls2 qml-module-qtquick-layouts
 
-# Clone du projet
 git clone https://github.com/BechirYengui/stm32-control-suite.git
-cd stm32-interface
+cd stm32-control-suite/desktop
 
-# Compilation
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
 
-# Exécution
 ./STM32Interface
 ```
 
 ### Windows
 
 ```bash
-# Avec Qt installé via Qt Online Installer
-# Ouvrir Qt Creator → File → Open Project → CMakeLists.txt
-# Ou en ligne de commande:
+# With Qt installed via the Qt Online Installer:
+# Open Qt Creator → File → Open Project → CMakeLists.txt
+# Or from the command line:
 
 mkdir build
 cd build
 cmake -G "MinGW Makefiles" ..
 mingw32-make
 
-# Exécution
 STM32Interface.exe
 ```
 
-### Options de compilation
+### Build options
 
 ```bash
-# Build complet avec toutes les fonctionnalités
-cmake -DBUILD_WITH_QML=ON -DBUILD_WITH_CHARTS=ON ..
+# Build with the QML view enabled
+cmake -DBUILD_WITH_QML=ON ..
 
-# Build minimal (Widgets seulement)
-cmake -DBUILD_WITH_QML=OFF -DBUILD_WITH_CHARTS=OFF ..
-
-# Build avec tests
+# Build with the unit tests
 cmake -DBUILD_TESTS=ON ..
 make && ctest
-
-# Build avec documentation
-cmake -DBUILD_DOCS=ON ..
-make docs
 ```
 
 ---
 
-## 📡 Configuration STM32
+## STM32 setup
 
 ### Hardware
 
-- **Microcontrôleur**: STM32F103 (ou compatible STM32F1xx)
-- **Communication**: USART2 (PA2=TX, PA3=RX) @ 115200 bauds
-- **ADC**: PA0 (entrée analogique 0-3.3V)
-- **PWM**: PA1 (TIM2_CH2)
-- **LED**: PC13 (active LOW)
+- MCU: STM32F103 (or any STM32F1xx)
+- UART: USART2 (PA2=TX, PA3=RX) @ 115200 baud
+- ADC: PA0 (analog input, 0-3.3V)
+- PWM: PA1 (TIM2_CH2)
+- LED: PC13 (active LOW)
 
 ### Firmware
 
-Le firmware STM32 se trouve dans `stm32_firmware/main_with_dma.c`.
+The STM32 firmware lives in `../firmware/application/src/main.c` within this monorepo. It handles UART and ADC via DMA, with optimized interrupts and a lightweight JSON parser.
 
-**Fonctionnalités du firmware:**
-- ✅ UART avec DMA (RX et TX)
-- ✅ ADC avec DMA en mode circulaire
-- ✅ Interruptions optimisées
-- ✅ Protocole JSON natif
-- ✅ Parsing léger des commandes
-- ✅ Gestion d'erreurs
-
-**Compilation:**
 ```bash
-# Utiliser STM32CubeIDE ou Makefile généré par CubeMX
-# Flasher avec st-link:
+# Build via STM32CubeIDE or a Makefile generated by CubeMX,
+# then flash with st-link:
 st-flash write firmware.bin 0x8000000
 ```
 
 ---
 
-## 💻 Utilisation
+## Usage
 
-### Démarrage rapide
+### Quick start
 
-1. **Brancher le STM32** via USB (UART-USB converter)
-2. **Lancer l'application** `./STM32Interface`
-3. **Sélectionner le port série** (ex: `/dev/ttyACM0` ou `COM3`)
-4. **Cliquer sur "Connecter"**
-5. **Utiliser les commandes rapides** ou envoyer des commandes personnalisées
+1. Plug in the STM32 via USB (UART-to-USB adapter)
+2. Launch `./STM32Interface`
+3. Select the serial port (e.g. `/dev/ttyACM0` or `COM3`)
+4. Click "Connect"
+5. Use the quick commands or send your own
 
-### Commandes disponibles
+### Commands
 
-#### Mode Texte (compatibilité)
+#### Text mode (legacy)
+
 ```
-GET_TEMP         - Lecture température
-GET_VOLTAGE      - Lecture tension ADC
-GET_ADC_RAW      - Valeur ADC brute
-STATUS           - État complet du système
-SET_LED=0/1      - Contrôle LED
-SET_PWM=0-100    - Réglage PWM (duty cycle en %)
-TOGGLE_LED       - Inverse l'état de la LED
-RESET            - Reset du microcontrôleur
+GET_TEMP         - Read temperature
+GET_VOLTAGE      - Read ADC voltage
+GET_ADC_RAW      - Raw ADC value
+STATUS           - Full system state
+SET_LED=0/1      - LED control
+SET_PWM=0-100    - PWM duty cycle (%)
+TOGGLE_LED       - Toggle LED state
+RESET            - Reset the microcontroller
 ```
 
-#### Mode JSON (recommandé)
+#### JSON mode (recommended)
 
-**Lecture température:**
+**Read temperature:**
 ```json
 {
   "type": "cmd",
@@ -233,7 +194,7 @@ RESET            - Reset du microcontrôleur
 }
 ```
 
-**Réponse:**
+**Response:**
 ```json
 {
   "type": "response",
@@ -243,7 +204,7 @@ RESET            - Reset du microcontrôleur
 }
 ```
 
-**Contrôle LED:**
+**LED control:**
 ```json
 {
   "type": "cmd",
@@ -254,7 +215,7 @@ RESET            - Reset du microcontrôleur
 }
 ```
 
-**Contrôle PWM:**
+**PWM control:**
 ```json
 {
   "type": "cmd",
@@ -265,7 +226,7 @@ RESET            - Reset du microcontrôleur
 }
 ```
 
-**Status complet:**
+**Full status:**
 ```json
 {
   "type": "response",
@@ -283,181 +244,184 @@ RESET            - Reset du microcontrôleur
 
 ---
 
-## 🔧 API et Exemples de Code
+## API examples
 
-### Utilisation du DeviceController
+### Using DeviceController
 
 ```cpp
 #include "DeviceController.h"
 
-// Création du contrôleur
+// create the controller
 DeviceController *controller = new DeviceController(this);
 
-// Connexion au dispositif
+// connect to the device
 controller->connectToDevice("/dev/ttyACM0", 115200);
 
-// Envoi de commandes
+// send commands
 controller->setLed(true);
 controller->setPwm(50);
 controller->requestTemperature();
 
-// Réception des données
+// receive data
 connect(controller, &DeviceController::temperatureUpdated,
         [](float temp) {
     qDebug() << "Temperature:" << temp << "°C";
 });
 
-// Accès au modèle de données
+// access the model
 DeviceState *state = controller->deviceState();
 qDebug() << "Current temp:" << state->temperature();
 
-// Historique des données
 DataModel *dataModel = controller->dataModel();
 auto tempHistory = dataModel->getTemperatureHistory();
 ```
 
-### Threading personnalisé
+### Custom threading
 
 ```cpp
-// Le SerialWorker s'exécute dans son propre thread
-// Les opérations I/O ne bloquent jamais l'UI
+// SerialWorker runs in its own thread,
+// so I/O never blocks the UI.
 
 SerialManager *serial = new SerialManager(this);
 
-// Envoi asynchrone
-serial->sendCommand(data);  // Non-bloquant
+// async send
+serial->sendCommand(data);  // non-blocking
 
-// Réception dans le thread principal
+// receive on the main thread
 connect(serial, &SerialManager::dataReceived,
         this, &MyClass::handleData);
 ```
 
 ---
 
-## 📊 Technologies Utilisées
+## Tech stack
 
-| Catégorie | Technologie | Usage |
-|-----------|-------------|-------|
-| **Langage** | C++17 | Application Qt |
-| **Framework** | Qt 5.15+ | Interface graphique |
-| **Architecture** | MVC | Organisation du code |
-| **Threading** | QThread | Communication asynchrone |
-| **Sérialisation** | JSON | Échange de données |
-| **Communication** | QSerialPort | Driver série |
-| **Build System** | CMake | Compilation |
-| **Embedded** | C + HAL | Firmware STM32 |
-| **DMA** | STM32 DMA | Transferts efficaces |
-| **Version Control** | Git | Gestion de version |
+| Area | Tech | Use |
+|------|------|-----|
+| Language | C++17 | Qt application |
+| Framework | Qt 5.15+ | GUI |
+| Architecture | MVC | Code organization |
+| Threading | QThread | Async communication |
+| Serialization | JSON | Wire format |
+| Communication | QSerialPort | Serial driver |
+| Build system | CMake | Compilation |
+| Embedded | C + HAL | STM32 firmware |
+| DMA | STM32 DMA | Efficient transfers |
+| VCS | Git | Versioning |
 
 ---
 
 ## 🧪 Tests
 
+Unit tests use QtTest.
+
 ```bash
-# Compilation avec tests
 cmake -DBUILD_TESTS=ON ..
 make
-
-# Exécution des tests
 ctest --output-on-failure
+```
 
-# Tests unitaires individuels
-./tests/test_devicestate
+Individual test binaries:
+
+```bash
 ./tests/test_jsonprotocol
-./tests/test_datamodel
+./tests/test_devicestate
 ```
 
 ---
 
 ## 📚 Documentation
 
-### Génération de la documentation
+API documentation is generated with Doxygen from `desktop/Doxyfile`:
 
 ```bash
-cmake -DBUILD_DOCS=ON ..
-make docs
-
-# Documentation dans: build/docs/html/index.html
-firefox build/docs/html/index.html
+cd desktop
+doxygen Doxyfile
 ```
 
-### Structure du code
+The HTML output lands in `docs/doxygen/html/index.html`.
+
+### Source layout
 
 ```
-stm32_interface_improved/
-├── CMakeLists.txt           # Configuration CMake principale
-├── README.md                # Ce fichier
-├── LICENSE                  # Licence du projet
+desktop/
+├── CMakeLists.txt
+├── Doxyfile
+├── README.md
+├── LICENSE
 │
-├── src/                     # Code source C++/Qt
-│   ├── main.cpp             # Point d'entrée
-│   ├── model/               # Modèles (MVC)
+├── src/
+│   ├── main.cpp
+│   ├── model/
 │   │   ├── DeviceState.{h,cpp}
 │   │   └── DataModel.{h,cpp}
-│   ├── view/                # Vues (MVC)
-│   │   ├── MainWindow.{h,cpp,ui}
-│   │   └── ChartWidget.{h,cpp}
-│   ├── controller/          # Contrôleurs (MVC)
+│   ├── view/
+│   │   └── MainWindow.{h,cpp,ui}
+│   ├── controller/
 │   │   └── DeviceController.{h,cpp}
-│   └── communication/       # Couche communication
+│   └── communication/
 │       ├── SerialManager.{h,cpp}
 │       ├── SerialWorker.{h,cpp}
 │       └── JsonProtocol.{h,cpp}
-____ MainWindow.ui
+├── qml/
+│   ├── main.qml
+│   └── resources.qrc
+└── tests/
+    ├── CMakeLists.txt
+    ├── test_jsonprotocol.cpp
+    └── test_devicestate.cpp
 ```
 
 ---
 
-## 🤝 Contribution
+## Contributing
 
-Les contributions sont les bienvenues ! Merci de suivre ces étapes:
+Contributions are welcome. The usual flow:
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes
+4. Push the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
-## 🐛 Dépannage
+## Troubleshooting
 
-### Problème: Port série non détecté
+### Serial port not detected
 
 ```bash
-# Linux: Vérifier les permissions
+# Linux: check permissions
 sudo usermod -a -G dialout $USER
-# Se déconnecter/reconnecter
+# Log out and back in — otherwise the new group is not picked up.
 
-# Vérifier les ports disponibles
+# List available ports
 ls -l /dev/tty*
 ```
 
-### Problème: Erreur de compilation Qt
+### Qt compilation error
 
 ```bash
-# Vérifier l'installation de Qt
 qmake --version
 
-# Réinstaller Qt SerialPort
+# Reinstall Qt SerialPort if needed
 sudo apt install libqt5serialport5-dev
 ```
 
-### Problème: DMA ne fonctionne pas (STM32)
+### DMA not working (STM32 side)
 
-- Vérifier la configuration des horloges DMA
-- S'assurer que les interruptions DMA sont activées
-- Vérifier les priorités d'interruption
-
----
-
-## 📝 License
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+- Check the DMA clock configuration
+- Make sure the DMA interrupts are enabled
+- Review the interrupt priorities
 
 ---
 
-## 👥 Auteurs
+## License
 
-- **Bechir**
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
+---
+
+## Author
+
+**Bechir Yengui** — [github.com/BechirYengui](https://github.com/BechirYengui)
