@@ -1,8 +1,14 @@
 # STM32 Control Suite
 
+[![Predecessor: qt_interface_stm32](https://img.shields.io/badge/Predecessor-qt__interface__stm32-blue?style=flat-square&logo=github)](https://github.com/BechirYengui/qt_interface_stm32)
+[![Predecessor: stm32_bootloader-application](https://img.shields.io/badge/Predecessor-stm32__bootloader--application-blue?style=flat-square&logo=github)](https://github.com/BechirYengui/stm32_bootloader-application)
+[![Active development since](https://img.shields.io/badge/Active%20development-September%202025-green?style=flat-square)](https://github.com/BechirYengui/stm32-control-suite)
+
 End-to-end embedded system combining a secure STM32 firmware and a C++/Qt desktop interface for real-time monitoring and control.
 
 ## Overview
+
+Active development since September 2025 — consolidated in May 2026 from two predecessor repositories: [qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32) and [stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application) (both archived). See [Project History](#project-history) for details.
 
 This monorepo contains two complementary projects:
 
@@ -60,12 +66,12 @@ See the dedicated READMEs:
 
 ## Project History
 
-This monorepo consolidates two previously separate repositories developed between September 2025 and March 2026:
+This monorepo is the consolidation of two repositories actively developed since September 2025 as part of my final-year apprenticeship at VEDECOM and post-apprenticeship personal projects:
 
-- **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)** (archived) — Original Qt desktop interface project
-- **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)** (archived) — Original STM32 secure firmware project
+- **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)** (archived May 2026) — Qt desktop interface for STM32 control. Initial commits: September 2025.
+- **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)** (archived May 2026) — STM32 secure bootloader with AES-128-CBC, HMAC-SHA256, and anti-replay protection. Initial commits: September 2025.
 
-Both repositories remain publicly accessible in archived state for reference. The current monorepo provides a unified structure, shared documentation, and consistent build tooling across both subsystems.
+The current monorepo (May 2026) unifies both subsystems under a shared structure with consistent build tooling and documentation. The archived repositories remain publicly accessible and preserve the original development history.
 
 ## License
 
