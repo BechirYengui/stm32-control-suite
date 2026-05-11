@@ -1,40 +1,76 @@
 # STM32 Control Suite
 
-End-to-end embedded control stack for an STM32F103: a secure-boot firmware
-on the device and a Qt/C++ desktop application that drives it over a
-serial link.
+End-to-end embedded system combining a secure STM32 firmware and a C++/Qt desktop interface for real-time monitoring and control.
 
-## Repository layout
+## Overview
+
+This monorepo contains two complementary projects:
+
+- **`firmware/`** — STM32F103 secure firmware: bootloader with CRC32 integrity verification, and application layer with AES-128-CBC encryption, HMAC-SHA256 authentication, and anti-replay protection.
+- **`desktop/`** — C++/Qt graphical interface to control and monitor the STM32 in real time over a serial link, with MVC architecture and JSON-based protocol.
+
+## Architecture
 
 ```
-.
-├── firmware/   STM32F103 bootloader, application image and crypto library
-│   ├── bootloader/   Secure-boot stage at 0x08000000 (CRC32 + SHA-256 image check)
-│   └── application/  Main application at 0x08002000 (UART/DMA, ADC, PWM, JSON + text protocol)
-│
-├── desktop/    Qt 5 desktop client (C++17, MVC, threaded serial worker)
-│
-└── docs/       Project-wide diagrams and screenshots
+┌─────────────────────────┐         ┌──────────────────────────┐
+│    Desktop (Qt / C++)   │  UART   │      STM32F103           │
+│                         │ <─────> │                          │
+│  - MVC architecture     │  JSON   │  - Secure bootloader     │
+│  - QThread serial I/O   │ 115200  │  - Encrypted app layer   │
+│  - Real-time dashboards │         │  - Peripherals (LED/PWM) │
+└─────────────────────────┘         └──────────────────────────┘
 ```
 
-- Firmware module: see [`firmware/README.md`](firmware/README.md)
-- Desktop module: see [`desktop/README.md`](desktop/README.md)
+## Repository Structure
+
+```
+stm32-control-suite/
+├── firmware/                 # STM32 firmware (C, PlatformIO)
+│   ├── bootloader/           # Secure bootloader (8 KB)
+│   └── application/          # Encrypted application (48 KB)
+├── desktop/                  # Qt C++ control interface
+│   ├── src/                  # MVC source code
+│   └── docs/                 # Architecture & migration notes
+└── docs/                     # Global documentation
+    ├── screenshots/
+    └── diagrams/
+```
+
+## Tech Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| Desktop | C++17, Qt 5.15+, CMake, QSerialPort, QThread, JSON |
+| Firmware | C, STM32 HAL, PlatformIO, mbedTLS, AES-128-CBC, HMAC-SHA256 |
+| Protocol | UART 115200 bps, JSON framing, encrypted payload |
+
+## Getting Started
+
+See the dedicated READMEs:
+
+- [Desktop application](desktop/README.md)
+- [STM32 firmware](firmware/README.md)
+
+## Project Highlights
+
+- **Modern C++ architecture**: MVC, RAII, STL, smart pointers, multi-threading
+- **Embedded security**: secure boot chain, encrypted communication, replay protection
+- **Production-grade tooling**: CMake, PlatformIO, unit tests, Doxygen documentation
+- **Cross-disciplinary**: hardware-level firmware to desktop UI, end-to-end ownership
 
 ## Project History
 
-This monorepo consolidates two previously separate repositories developed
-between September 2025 and March 2026:
+This monorepo consolidates two previously separate repositories developed between September 2025 and March 2026:
 
-- **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)**
-  (archived) — Original Qt desktop interface project.
-- **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)**
-  (archived) — Original STM32 secure firmware project.
+- **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)** (archived) — Original Qt desktop interface project
+- **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)** (archived) — Original STM32 secure firmware project
 
-Both repositories remain publicly accessible in archived state for
-reference. The current monorepo provides a unified structure, shared
-documentation, and consistent build tooling across both subsystems.
+Both repositories remain publicly accessible in archived state for reference. The current monorepo provides a unified structure, shared documentation, and consistent build tooling across both subsystems.
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](LICENSE)
-for details.
+MIT — see [LICENSE](LICENSE).
+
+## Author
+
+**Bechir Yengui** — [github.com/BechirYengui](https://github.com/BechirYengui)
