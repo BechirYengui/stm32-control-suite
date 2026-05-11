@@ -4,6 +4,9 @@ build-*/
 .pio/
 cmake-build-*/
 
+# Generated docs
+desktop/docs/doxygen/
+
 # Editor caches and local tooling
 .aider*
 .claude/
