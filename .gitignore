@@ -22,14 +22,9 @@ Thumbs.db
 *.o
 *.obj
 *.exe
+*.so
 *.sha256
 firmware_signed*
-
-# AI tooling artifacts
-.claude/
-CLAUDE.md
-.aider*
-.cursor/
 
 # Logs
 *.log
