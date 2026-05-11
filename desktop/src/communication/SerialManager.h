@@ -7,14 +7,9 @@
 #include "SerialWorker.h"
 
 /**
- * @brief Gestionnaire de communication série avec threading
- * 
- * Cette classe gère la communication série en utilisant un worker dans
- * un thread séparé pour éviter de bloquer l'interface utilisateur.
- * 
- * Architecture:
- * - SerialManager (thread principal) : Interface de haut niveau
- * - SerialWorker (thread dédié) : Opérations I/O série
+ * High-level facade for the serial link. Owns the SerialWorker and its
+ * QThread; public methods are non-blocking and post requests to the
+ * worker via queued connections.
  */
 class SerialManager : public QObject
 {
@@ -23,37 +18,30 @@ class SerialManager : public QObject
 public:
     explicit SerialManager(QObject *parent = nullptr);
     ~SerialManager();
-    
-    // Gestion de la connexion
+
     bool openPort(const QString &portName, qint32 baudRate = 115200);
     void closePort();
     bool isConnected() const { return m_connected; }
-    
-    // Envoi de données
+
     bool sendCommand(const QByteArray &command);
     bool sendCommandPriority(const QByteArray &command);
-    
-    // Informations
+
     QString getPortName() const { return m_portName; }
     qint32 getBaudRate() const { return m_baudRate; }
     QString getPortInfo() const;
-    
-    // Utilitaires statiques
+
     static QStringList availablePorts();
     static QString getPortDescription(const QString &portName);
 
 signals:
-    // Signaux de communication
     void dataReceived(const QByteArray &data);
     void dataSent(const QByteArray &data);
     void connectionStatusChanged(bool connected);
     void errorOccurred(const QString &error);
-    
-    // Statistiques
+
     void bytesWritten(qint64 bytes);
     void bytesReceived(qint64 bytes);
-    
-    // Signaux internes pour le worker (via queued connections)
+
     void requestOpenPort(const QString &portName, qint32 baudRate);
     void requestClosePort();
     void requestSendData(const QByteArray &data);

@@ -6,29 +6,25 @@ DeviceController::DeviceController(QObject *parent)
     : QObject(parent)
     , m_autoRefreshEnabled(false)
 {
-    // Initialisation des modèles
     m_deviceState = new DeviceState(this);
     m_dataModel = new DataModel(this);
-    
-    // Initialisation de la communication
+
     m_serialManager = new SerialManager(this);
     m_jsonProtocol = new JsonProtocol(this);
-    
-    // Timer pour rafraîchissement automatique
+
     m_autoRefreshTimer = new QTimer(this);
     connect(m_autoRefreshTimer, &QTimer::timeout,
             this, &DeviceController::handleAutoRefreshTimeout);
-    
-    // === CONNEXIONS SERIALMANAGER ===
+
     connect(m_serialManager, &SerialManager::dataReceived,
             this, &DeviceController::handleDataReceived);
-    
+
     connect(m_serialManager, &SerialManager::connectionStatusChanged,
             this, &DeviceController::handleConnectionChanged);
-    
+
     connect(m_serialManager, &SerialManager::errorOccurred,
             this, &DeviceController::handleSerialError);
-    
+
     qDebug() << "[DeviceController] Initialized with MVC architecture";
 }
 
@@ -52,12 +48,11 @@ bool DeviceController::connectToDevice(const QString &portName, qint32 baudRate)
 void DeviceController::disconnectFromDevice()
 {
     qDebug() << "[DeviceController] Disconnecting";
-    
-    // Arrête le rafraîchissement automatique
+
     if (m_autoRefreshTimer->isActive()) {
         m_autoRefreshTimer->stop();
     }
-    
+
     m_serialManager->closePort();
 }
 
@@ -67,8 +62,7 @@ void DeviceController::setLed(bool state)
     
     QByteArray command = JsonProtocol::encodeSetLed(state);
     m_serialManager->sendCommand(command);
-    
-    // Mise à jour immédiate du modèle (sera confirmé par la réponse)
+
     m_deviceState->setLedState(state);
     
     emit commandSent(state ? "SET_LED=1" : "SET_LED=0");
@@ -90,8 +84,7 @@ void DeviceController::setPwm(uint8_t dutyCycle)
     
     QByteArray command = JsonProtocol::encodeSetPwm(dutyCycle);
     m_serialManager->sendCommand(command);
-    
-    // Mise à jour immédiate du modèle
+
     m_deviceState->setPwmDutyCycle(dutyCycle);
     m_dataModel->addPwmPoint(dutyCycle);
     
@@ -103,7 +96,7 @@ void DeviceController::resetDevice()
     qDebug() << "[DeviceController] Resetting device";
     
     QByteArray command = JsonProtocol::encodeReset();
-    m_serialManager->sendCommandPriority(command);  // Priorité haute
+    m_serialManager->sendCommandPriority(command);
     
     emit commandSent("RESET");
 }
@@ -124,7 +117,6 @@ void DeviceController::requestVoltage()
 
 void DeviceController::requestAdcRaw()
 {
-    // Envoi d'une commande personnalisée
     sendCustomCommand("GET_ADC_RAW");
 }
 
@@ -209,24 +201,21 @@ void DeviceController::handleSerialError(const QString &error)
 
 void DeviceController::handleAutoRefreshTimeout()
 {
-    // Demande périodique de l'état complet
     requestStatus();
 }
 
 void DeviceController::parseResponse(const QByteArray &data)
 {
-    // Tente de parser en JSON d'abord
     if (JsonProtocol::isValidJson(data)) {
         bool ok;
         QJsonObject json = JsonProtocol::parseMessage(data, &ok);
-        
+
         if (ok) {
             parseJsonResponse(json);
             return;
         }
     }
-    
-    // Sinon, parse comme texte brut
+
     QString text = QString::fromUtf8(data);
     parseTextResponse(text);
 }
@@ -270,8 +259,7 @@ void DeviceController::parseJsonResponse(const QJsonObject &json)
 void DeviceController::parseTextResponse(const QString &text)
 {
     qDebug() << "[DeviceController] Parsing text response:" << text;
-    
-    // Parse des réponses texte simples
+
     if (text.startsWith("TEMP:")) {
         QString tempStr = text.mid(5).trimmed();
         tempStr.remove("°C");
@@ -324,7 +312,6 @@ void DeviceController::updateStatusFromJson(const QJsonObject &json)
 {
     QJsonObject status;
     if (JsonProtocol::extractStatus(json, &status)) {
-        // Mise à jour de tous les paramètres d'état
         if (status.contains("temp")) {
             m_deviceState->setTemperature(status["temp"].toDouble());
         }
@@ -347,7 +334,6 @@ void DeviceController::updateStatusFromJson(const QJsonObject &json)
 
 void DeviceController::updateHeartbeatFromJson(const QJsonObject &json)
 {
-    // Traite les données de heartbeat
     if (json.contains("data") && json["data"].isObject()) {
         QJsonObject data = json["data"].toObject();
         

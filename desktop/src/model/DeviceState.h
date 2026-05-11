@@ -7,16 +7,13 @@
 #include <QJsonObject>
 
 /**
- * @brief Classe représentant l'état complet du dispositif STM32
- * 
- * Cette classe fait partie du modèle (Model) dans l'architecture MVC.
- * Elle encapsule toutes les données d'état du microcontrôleur.
+ * Snapshot of the STM32 device state exposed to the UI via Q_PROPERTY so
+ * QML and widget views can bind to it directly.
  */
 class DeviceState : public QObject
 {
     Q_OBJECT
-    
-    // Propriétés Q_PROPERTY pour QML binding
+
     Q_PROPERTY(bool connected READ isConnected WRITE setConnected NOTIFY connectedChanged)
     Q_PROPERTY(float temperature READ temperature WRITE setTemperature NOTIFY temperatureChanged)
     Q_PROPERTY(float voltage READ voltage WRITE setVoltage NOTIFY voltageChanged)
@@ -29,8 +26,7 @@ class DeviceState : public QObject
 
 public:
     explicit DeviceState(QObject *parent = nullptr);
-    
-    // Getters
+
     bool isConnected() const { return m_connected; }
     float temperature() const { return m_temperature; }
     float voltage() const { return m_voltage; }
@@ -41,8 +37,7 @@ public:
     quint32 rxCharCount() const { return m_rxCharCount; }
     QString firmwareVersion() const { return m_firmwareVersion; }
     QDateTime lastUpdate() const { return m_lastUpdate; }
-    
-    // Setters
+
     void setConnected(bool connected);
     void setTemperature(float temp);
     void setVoltage(float voltage);
@@ -52,8 +47,7 @@ public:
     void setUptime(quint32 uptime);
     void setRxCharCount(quint32 count);
     void setFirmwareVersion(const QString &version);
-    
-    // Méthodes utilitaires
+
     void reset();
     QJsonObject toJson() const;
     void fromJson(const QJsonObject &json);

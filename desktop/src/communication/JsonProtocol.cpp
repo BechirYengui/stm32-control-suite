@@ -203,8 +203,6 @@ QByteArray JsonProtocol::formatJsonForSerial(const QJsonObject &json)
 {
     QJsonDocument doc(json);
     QByteArray data = doc.toJson(QJsonDocument::Compact);
-
-    // Ajoute un retour à la ligne pour délimiter les messages
     data.append('\n');
 
     return data;

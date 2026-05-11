@@ -35,7 +35,6 @@ void SerialWorker::stop()
     m_stopRequested = true;
     m_running = false;
 
-    // Réveille le thread s'il attend
     m_queueCondition.wakeAll();
 }
 
@@ -50,7 +49,6 @@ void SerialWorker::setupSerialPort()
     connect(m_serialPort, &QSerialPort::readyRead,
             this, &SerialWorker::handleReadyRead);
 
-    // ✅ CORRECTION: Utilise errorOccurred au lieu de error (Qt 5.8+)
     connect(m_serialPort, &QSerialPort::errorOccurred,
             this, &SerialWorker::handleError);
 }
@@ -72,7 +70,6 @@ void SerialWorker::openPort(const QString &portName, qint32 baudRate)
 
     qDebug() << "[SerialWorker] Opening port" << portName << "@" << baudRate << "bauds";
 
-    // Ferme le port existant
     if (m_serialPort && m_serialPort->isOpen()) {
         m_serialPort->close();
     }
@@ -82,7 +79,6 @@ void SerialWorker::openPort(const QString &portName, qint32 baudRate)
     m_portName = portName;
     m_baudRate = baudRate;
 
-    // Configuration du port série
     m_serialPort->setPortName(portName);
     m_serialPort->setBaudRate(baudRate);
     m_serialPort->setDataBits(QSerialPort::Data8);
@@ -90,7 +86,6 @@ void SerialWorker::openPort(const QString &portName, qint32 baudRate)
     m_serialPort->setStopBits(QSerialPort::OneStop);
     m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
-    // Tentative d'ouverture
     if (m_serialPort->open(QIODevice::ReadWrite)) {
         m_receiveBuffer.clear();
         m_totalBytesSent = 0;
@@ -115,7 +110,6 @@ void SerialWorker::closePort()
         m_serialPort->close();
         m_receiveBuffer.clear();
 
-        // Vide la queue d'envoi
         QMutexLocker queueLocker(&m_queueMutex);
         m_sendQueue.clear();
 
@@ -137,7 +131,6 @@ void SerialWorker::sendData(const QByteArray &data)
     m_sendQueue.enqueue(data);
     qDebug() << "[SerialWorker] Data queued, queue size:" << m_sendQueue.size();
 
-    // Traite la queue immédiatement
     processSendQueue();
 }
 
@@ -145,17 +138,15 @@ void SerialWorker::sendDataPriority(const QByteArray &data)
 {
     QMutexLocker locker(&m_queueMutex);
 
-    // Insère en tête de queue pour priorité
     m_sendQueue.prepend(data);
     qDebug() << "[SerialWorker] Priority data queued, queue size:" << m_sendQueue.size();
 
     processSendQueue();
 }
 
+// Caller must hold m_queueMutex.
 void SerialWorker::processSendQueue()
 {
-    // Ne prend pas le mutex ici car appelé depuis une fonction qui l'a déjà
-
     while (!m_sendQueue.isEmpty()) {
         QByteArray data = m_sendQueue.dequeue();
 
@@ -185,7 +176,6 @@ bool SerialWorker::sendDataInternal(const QByteArray &data)
         return false;
     }
 
-    // Force l'envoi immédiat
     if (!m_serialPort->flush()) {
         qDebug() << "[SerialWorker] WARNING: Flush failed";
     }
@@ -208,7 +198,6 @@ void SerialWorker::handleReadyRead()
         return;
     }
 
-    // Lit toutes les données disponibles
     QByteArray data = m_serialPort->readAll();
 
     if (data.isEmpty()) {
@@ -221,27 +210,22 @@ void SerialWorker::handleReadyRead()
 
     emit bytesReceived(data.size());
 
-    // Ajoute au buffer de réception
     m_receiveBuffer.append(data);
 
-    // Traite les lignes complètes (délimitées par '\n')
     while (m_receiveBuffer.contains('\n')) {
         int idx = m_receiveBuffer.indexOf('\n');
         QByteArray line = m_receiveBuffer.left(idx);
         m_receiveBuffer.remove(0, idx + 1);
 
-        // Supprime '\r' si présent
         if (line.endsWith('\r')) {
             line.chop(1);
         }
 
-        // Émet uniquement les lignes non vides
         if (!line.isEmpty()) {
             emit dataReceived(line);
         }
     }
 
-    // Protection contre le débordement de buffer
     if (m_receiveBuffer.size() > BUFFER_SIZE) {
         qDebug() << "[SerialWorker] ERROR: Buffer overflow, purging";
         m_receiveBuffer.clear();
@@ -251,7 +235,6 @@ void SerialWorker::handleReadyRead()
 
 void SerialWorker::handleError(QSerialPort::SerialPortError error)
 {
-    // Ignore les erreurs normales
     if (error == QSerialPort::NoError || error == QSerialPort::TimeoutError) {
         return;
     }
@@ -276,7 +259,6 @@ void SerialWorker::handleError(QSerialPort::SerialPortError error)
             break;
         case QSerialPort::ResourceError:
             errorMsg = "Resource unavailable (device disconnected?)";
-            // Ferme automatiquement en cas de déconnexion
             closePort();
             break;
         default:

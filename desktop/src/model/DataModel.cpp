@@ -43,8 +43,7 @@ void DataModel::addPwmPoint(uint8_t pwmDuty)
 void DataModel::addDataPoint(QVector<DataPoint> &history, const DataPoint &point)
 {
     history.append(point);
-    
-    // Limite la taille de l'historique
+
     if (history.size() > m_maxDataPoints) {
         history.removeFirst();
     }
@@ -76,8 +75,7 @@ void DataModel::setMaxDataPoints(int maxPoints)
     if (maxPoints > 10000) maxPoints = 10000;
     
     m_maxDataPoints = maxPoints;
-    
-    // Ajuste les historiques existants
+
     while (m_temperatureHistory.size() > m_maxDataPoints)
         m_temperatureHistory.removeFirst();
     

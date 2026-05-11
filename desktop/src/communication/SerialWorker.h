@@ -9,13 +9,8 @@
 #include <QWaitCondition>
 
 /**
- * @brief Worker thread pour communication série asynchrone
- * 
- * Cette classe s'exécute dans un thread séparé (QThread) pour ne pas
- * bloquer l'interface utilisateur lors des opérations I/O série.
- * 
- * Utilise une queue de commandes pour gérer les envois multiples et
- * assure la synchronisation thread-safe.
+ * Asynchronous serial-port worker. Runs on its own QThread so I/O never
+ * blocks the UI thread; outbound writes are queued and flushed in order.
  */
 class SerialWorker : public QObject
 {
@@ -24,26 +19,22 @@ class SerialWorker : public QObject
 public:
     explicit SerialWorker(QObject *parent = nullptr);
     ~SerialWorker();
-    
+
     bool isRunning() const { return m_running; }
     QString portName() const { return m_portName; }
     qint32 baudRate() const { return m_baudRate; }
 
 public slots:
-    // Gestion de la connexion (appelés depuis le thread principal)
     void openPort(const QString &portName, qint32 baudRate);
     void closePort();
-    
-    // Envoi de données (thread-safe)
+
     void sendData(const QByteArray &data);
-    void sendDataPriority(const QByteArray &data);  // Priorité haute
-    
-    // Contrôle du worker
+    void sendDataPriority(const QByteArray &data);
+
     void start();
     void stop();
 
 signals:
-    // Signaux émis vers le thread principal
     void portOpened(const QString &portName, qint32 baudRate);
     void portClosed();
     void openError(const QString &error);
