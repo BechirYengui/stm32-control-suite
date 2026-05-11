@@ -4,12 +4,16 @@ build-*/
 .pio/
 cmake-build-*/
 
-# IDE files
-.vscode/
+# Editor caches and local tooling
+.aider*
+.claude/
+.cursor/
 .idea/
-*.user
-CMakeLists.txt.user
 .qtcreator/
+.vscode/
+CLAUDE.md
+CMakeLists.txt.user
+*.user
 
 # OS files
 .DS_Store
