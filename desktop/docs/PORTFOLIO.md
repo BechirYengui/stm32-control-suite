@@ -355,9 +355,9 @@ stm32_interface_improved/
 Ingénieur Systèmes Embarqués et Cybersécurité  
 IMT Atlantique - Promotion 2025
 
-- 📧 Email: [votre.email@imt-atlantique.net](mailto:votre.email@imt-atlantique.net)
-- 💼 LinkedIn: [Votre Profil](https://linkedin.com/in/votre-profil)
-- 🌐 GitHub: [@votre-username](https://github.com/votre-username)
+- 📧 Email: [bechir.yengui5@gmail.com](mailto:bechir.yengui5@gmail.com)
+- 💼 LinkedIn: [bechir-yengui](https://linkedin.com/in/bechir-yengui/)
+- 🌐 GitHub: [@BechirYengui](https://github.com/BechirYengui)
 
 ---
 

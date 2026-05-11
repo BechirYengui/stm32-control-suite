@@ -274,7 +274,7 @@ brew install stlink
 ### 1. Cloner le projet
 
 ```bash
-git clone <repository_url>
+git clone https://github.com/BechirYengui/stm32-control-suite.git
 cd stm32_secure_system
 ```
 

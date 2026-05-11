@@ -1,11 +1,9 @@
 # Interface de Pilotage et Supervision STM32
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/votre-repo/stm32-interface)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 [![Qt](https://img.shields.io/badge/Qt-5.15+-green.svg)](https://www.qt.io/)
 [![C++](https://img.shields.io/badge/C++-17-orange.svg)](https://isocpp.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-
-**Projet développé **
 
 ## 📋 Description
 
@@ -122,7 +120,7 @@ sudo apt install qtdeclarative5-dev qml-module-qtquick2
 sudo apt install libqt5charts5-dev
 
 # Clone du projet
-git clone https://github.com/votre-repo/stm32-interface.git
+git clone https://github.com/BechirYengui/stm32-control-suite.git
 cd stm32-interface
 
 # Compilation
