@@ -1,7 +1,7 @@
-/**
- * ============================================================================
- * SECURE BOOTLOADER - STM32F103 - VERSION FINALE STABLE
- * ============================================================================
+/*
+ * Secure bootloader for STM32F103.
+ * Validates the application image (magic, size, CRC32, SHA-256) before
+ * jumping to APPLICATION_ADDRESS.
  */
 
 #include "stm32f1xx_hal.h"
@@ -103,7 +103,7 @@ void Jump_To_Application(void) {
         NVIC->ICPR[i] = 0xFFFFFFFF;
     }
     
-    // NE TOUCHE PAS RCC - l'application le fera
+    /* Leave RCC untouched — the application reconfigures clocks itself. */
     
     SCB->VTOR = APPLICATION_ADDRESS;
     __DSB();

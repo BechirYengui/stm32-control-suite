@@ -1,8 +1,8 @@
-/**
- * ============================================================================
- * STM32F103 - APPLICATION HAL COMPLÈTE - SECURE BOOT COMPATIBLE
- * Support JSON + Commandes TEXTE
- * ============================================================================
+/*
+ * STM32F103 application image.
+ * Runs after the secure-boot bootloader hands off control. Talks to the
+ * Qt host over USART2 with both a line-based text protocol and a small
+ * JSON protocol.
  */
 
 #include "stm32f1xx_hal.h"
@@ -11,9 +11,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-/* ============================================================================
-   HANDLES & BUFFERS
-   ============================================================================ */
+/* Peripheral handles and DMA buffers */
 UART_HandleTypeDef huart2;
 ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim2;
@@ -33,9 +31,6 @@ char cmd_buffer[CMD_BUFFER_SIZE];
 volatile uint16_t rx_old_pos = 0;
 volatile uint16_t cmd_index = 0;
 
-/* ============================================================================
-   DEVICE STATE
-   ============================================================================ */
 typedef struct {
     float temperature;
     float voltage;
@@ -48,9 +43,6 @@ typedef struct {
 
 volatile DeviceState_t device = {.temperature = 25.0f};
 
-/* ============================================================================
-   PROTOTYPES
-   ============================================================================ */
 void System_FullReinit(void);
 void SystemClock_Config(void);
 void GPIO_Init(void);
@@ -67,19 +59,15 @@ void updateADC(void);
 void setPWM(uint8_t duty);
 static void trim(char *s);
 
-// JSON helpers
 int isJsonCommand(const char *str);
 int extractJsonString(const char *json, const char *key, char *out, int maxLen);
 int extractJsonInt(const char *json, const char *key, int *out);
 
-/* ============================================================================
-   MAIN
-   ============================================================================ */
 int main(void) {
-    // 🔥 CRITIQUE: Reset système AVANT HAL
+    /* Reset peripherals to a known state before HAL_Init runs — the
+     * bootloader left them partially configured. */
     System_FullReinit();
-    
-    // Init HAL
+
     HAL_Init();
     SystemClock_Config();
     GPIO_Init();
@@ -87,35 +75,32 @@ int main(void) {
     USART2_Init();
     ADC1_Init();
     TIM2_PWM_Init();
-    
-    // 3 blinks = app démarre
+
+
+    /* 3 short blinks signal that the application image has started. */
     for(int i = 0; i < 3; i++) {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
         HAL_Delay(100);
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
         HAL_Delay(100);
     }
-    
-    // Message de bienvenue
+
     sendResponse("READY\r\n");
-    
-    // Démarre DMA
+
     HAL_UART_Receive_DMA(&huart2, uart_rx_buffer, UART_RX_BUFFER_SIZE);
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, ADC_BUFFER_SIZE);
-    
+
     uint32_t last_heartbeat = HAL_GetTick();
     uint32_t last_adc = HAL_GetTick();
-    
+
     while(1) {
         checkDMABuffer();
-        
-        // Update ADC toutes les 100ms
+
         if (HAL_GetTick() - last_adc > 100) {
             updateADC();
             last_adc = HAL_GetTick();
         }
-        
-        // Heartbeat toutes les 5s
+
         if (HAL_GetTick() - last_heartbeat > 5000) {
             char msg[64];
             snprintf(msg, sizeof(msg), "UP:%lus V:%.2f PWM:%u\r\n",
@@ -129,9 +114,6 @@ int main(void) {
     }
 }
 
-/* ============================================================================
-   SYSTEM REINIT
-   ============================================================================ */
 void System_FullReinit(void) {
     __disable_irq();
     
@@ -164,9 +146,6 @@ void System_FullReinit(void) {
     __enable_irq();
 }
 
-/* ============================================================================
-   UART DMA PARSING
-   ============================================================================ */
 void checkDMABuffer(void) {
     uint16_t pos = UART_RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart2.hdmarx);
     
@@ -200,18 +179,14 @@ void processChar(uint8_t c) {
     }
 }
 
-/* ============================================================================
-   JSON PARSER SIMPLE
-   ============================================================================ */
+/* Minimal JSON parser — handles the small command schema only. */
 
-// Vérifie si c'est du JSON (commence par '{' et contient "command")
 int isJsonCommand(const char *str) {
     if (str[0] != '{') return 0;
     if (strstr(str, "\"command\"") == NULL) return 0;
     return 1;
 }
 
-// Extrait une valeur string entre guillemets
 int extractJsonString(const char *json, const char *key, char *out, int maxLen) {
     char search[64];
     snprintf(search, sizeof(search), "\"%s\":\"", key);
@@ -231,56 +206,43 @@ int extractJsonString(const char *json, const char *key, char *out, int maxLen) 
     return 1;
 }
 
-// Extrait une valeur numérique depuis params.key
+/* Extract an integer at "params":{ ..., "<key>": <int>, ... }. */
 int extractJsonInt(const char *json, const char *key, int *out) {
-    // Cherche "params":{
     const char *params = strstr(json, "\"params\"");
     if (!params) return 0;
-    
-    // Cherche le début de l'objet params
+
     const char *obj_start = strchr(params, '{');
     if (!obj_start) return 0;
-    
-    // Cherche la clé dans params
+
     char search[64];
     snprintf(search, sizeof(search), "\"%s\":", key);
-    
+
     const char *key_pos = strstr(obj_start, search);
     if (!key_pos) return 0;
-    
+
     const char *val_start = key_pos + strlen(search);
-    
-    // Skip whitespace
+
     while (*val_start == ' ' || *val_start == '\t') val_start++;
-    
-    // Parse le nombre
+
     if (!isdigit(*val_start) && *val_start != '-') return 0;
-    
+
     *out = atoi(val_start);
     return 1;
 }
 
-/* ============================================================================
-   COMMANDS - JSON + TEXTE
-   ============================================================================ */
 void processCommand(char *cmd) {
     char resp[256];
-    
-    // ============================================================================
-    // 🔥 DÉTECTION ET TRAITEMENT JSON
-    // ============================================================================
+
     if (isJsonCommand(cmd)) {
         char command[32] = {0};
         int state = 0;
         int duty = 0;
-        
-        // Extrait le nom de la commande
+
         if (!extractJsonString(cmd, "command", command, sizeof(command))) {
             sendResponse("{\"status\":\"error\",\"message\":\"Invalid JSON\"}\r\n");
             return;
         }
-        
-        // 📌 COMMANDE JSON: SET_LED
+
         if (!strcmp(command, "SET_LED")) {
             if (extractJsonInt(cmd, "state", &state)) {
                 if (state == 1) {
@@ -297,8 +259,7 @@ void processCommand(char *cmd) {
             }
             return;
         }
-        
-        // 📌 COMMANDE JSON: SET_PWM
+
         else if (!strcmp(command, "SET_PWM")) {
             if (extractJsonInt(cmd, "duty", &duty)) {
                 if (duty >= 0 && duty <= 100) {
@@ -316,25 +277,22 @@ void processCommand(char *cmd) {
             return;
         }
         
-        // 📌 COMMANDE JSON: GET_TEMP
         else if (!strcmp(command, "GET_TEMP")) {
-            snprintf(resp, sizeof(resp), 
-                    "{\"status\":\"ok\",\"temperature\":%.1f}\r\n", 
+            snprintf(resp, sizeof(resp),
+                    "{\"status\":\"ok\",\"temperature\":%.1f}\r\n",
                     device.temperature);
             sendResponse(resp);
             return;
         }
-        
-        // 📌 COMMANDE JSON: GET_VOLTAGE
+
         else if (!strcmp(command, "GET_VOLTAGE")) {
-            snprintf(resp, sizeof(resp), 
-                    "{\"status\":\"ok\",\"voltage\":%.2f,\"adc_raw\":%u}\r\n", 
+            snprintf(resp, sizeof(resp),
+                    "{\"status\":\"ok\",\"voltage\":%.2f,\"adc_raw\":%u}\r\n",
                     device.voltage, device.adc_raw);
             sendResponse(resp);
             return;
         }
-        
-        // 📌 COMMANDE JSON: STATUS
+
         else if (!strcmp(command, "STATUS")) {
             snprintf(resp, sizeof(resp),
                     "{\"status\":\"ok\",\"led\":%s,\"uptime\":%lu,\"voltage\":%.2f,\"pwm\":%u}\r\n",
@@ -343,29 +301,25 @@ void processCommand(char *cmd) {
             sendResponse(resp);
             return;
         }
-        
-        // 📌 COMMANDE JSON: RESET
+
         else if (!strcmp(command, "RESET")) {
             sendResponse("{\"status\":\"ok\",\"message\":\"Resetting...\"}\r\n");
             HAL_Delay(100);
             NVIC_SystemReset();
             return;
         }
-        
-        // Commande JSON inconnue
+
         else {
-            snprintf(resp, sizeof(resp), 
-                    "{\"status\":\"error\",\"message\":\"Unknown: %s\"}\r\n", 
+            snprintf(resp, sizeof(resp),
+                    "{\"status\":\"error\",\"message\":\"Unknown: %s\"}\r\n",
                     command);
             sendResponse(resp);
             return;
         }
     }
-    
-    // ============================================================================
-    // 📝 COMMANDES TEXTE CLASSIQUES
-    // ============================================================================
-    
+
+    /* Legacy plain-text command set. */
+
     if (!strcmp(cmd, "PING")) {
         sendResponse("PONG\r\n");
     }
@@ -419,9 +373,6 @@ void processCommand(char *cmd) {
     }
 }
 
-/* ============================================================================
-   UART TX
-   ============================================================================ */
 void sendResponse(const char *msg) {
     uint16_t len = strlen(msg);
     if (len > UART_RX_BUFFER_SIZE) len = UART_RX_BUFFER_SIZE;
@@ -430,9 +381,6 @@ void sendResponse(const char *msg) {
     while (huart2.gState != HAL_UART_STATE_READY);
 }
 
-/* ============================================================================
-   ADC / PWM
-   ============================================================================ */
 void updateADC(void) {
     uint32_t sum = 0;
     for (int i = 0; i < ADC_BUFFER_SIZE; i++)
@@ -447,9 +395,6 @@ void setPWM(uint8_t duty) {
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pulse);
 }
 
-/* ============================================================================
-   INIT
-   ============================================================================ */
 void DMA_Init(void) {
     __HAL_RCC_DMA1_CLK_ENABLE();
     
@@ -609,9 +554,6 @@ void SystemClock_Config(void) {
     HAL_RCCEx_PeriphCLKConfig(&pclk);
 }
 
-/* ============================================================================
-   IRQ HANDLERS
-   ============================================================================ */
 void SysTick_Handler(void) {
     HAL_IncTick();
 }
@@ -624,9 +566,6 @@ void DMA1_Channel7_IRQHandler(void) {
     HAL_DMA_IRQHandler(&hdma_usart2_tx);
 }
 
-/* ============================================================================
-   UTILS
-   ============================================================================ */
 static void trim(char *s) {
     while (*s == ' ') memmove(s, s + 1, strlen(s));
     char *e = s + strlen(s) - 1;

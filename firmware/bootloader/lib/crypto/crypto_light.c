@@ -1,14 +1,6 @@
-/**
- * ============================================================================
- * IMPLÉMENTATION CRYPTO LÉGÈRE POUR STM32 BARE METAL
- * ============================================================================
- */
-
 #include "crypto_light.h"
 
-// ============================================================================
-// SHA-256 Implementation (Optimisée pour ARM Cortex-M3)
-// ============================================================================
+/* SHA-256 */
 
 #define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
 #define ROTRIGHT(a,b) (((a) >> (b)) | ((a) << (32-(b))))
@@ -146,9 +138,7 @@ void sha256_hash(const uint8_t *data, size_t len, uint8_t hash[32]) {
     sha256_final(&ctx, hash);
 }
 
-// ============================================================================
-// HMAC-SHA256
-// ============================================================================
+/* HMAC-SHA256: HMAC(K, m) = H((K' ^ opad) || H((K' ^ ipad) || m)) */
 
 void hmac_sha256(const uint8_t *key, size_t key_len,
                  const uint8_t *data, size_t data_len,
@@ -156,45 +146,37 @@ void hmac_sha256(const uint8_t *key, size_t key_len,
     uint8_t k_pad[64];
     uint8_t tk[32];
     SHA256_CTX ctx;
-    
-    // Si la clé est trop longue, hash-la
+
     if (key_len > 64) {
         sha256_hash(key, key_len, tk);
         key = tk;
         key_len = 32;
     }
-    
-    // Prépare k_pad
+
     memset(k_pad, 0, sizeof(k_pad));
     memcpy(k_pad, key, key_len);
-    
-    // HMAC = H((K ⊕ opad) || H((K ⊕ ipad) || message))
-    
-    // Inner hash: H((K ⊕ ipad) || message)
+
     for (int i = 0; i < 64; i++)
         k_pad[i] ^= 0x36;
-    
+
     sha256_init(&ctx);
     sha256_update(&ctx, k_pad, 64);
     sha256_update(&ctx, data, data_len);
     sha256_final(&ctx, hmac);
-    
-    // Outer hash: H((K ⊕ opad) || inner_hash)
+
     memset(k_pad, 0, sizeof(k_pad));
     memcpy(k_pad, key, key_len);
-    
+
     for (int i = 0; i < 64; i++)
         k_pad[i] ^= 0x5c;
-    
+
     sha256_init(&ctx);
     sha256_update(&ctx, k_pad, 64);
     sha256_update(&ctx, hmac, 32);
     sha256_final(&ctx, hmac);
 }
 
-// ============================================================================
-// XOR Cipher (Chiffrement simple et rapide)
-// ============================================================================
+/* XOR stream cipher */
 
 void xor_cipher_encrypt(uint8_t *data, size_t data_len,
                        const uint8_t *key, size_t key_len) {
@@ -205,13 +187,10 @@ void xor_cipher_encrypt(uint8_t *data, size_t data_len,
 
 void xor_cipher_decrypt(uint8_t *data, size_t data_len,
                        const uint8_t *key, size_t key_len) {
-    // XOR est symétrique
     xor_cipher_encrypt(data, data_len, key, key_len);
 }
 
-// ============================================================================
-// Base64 Encoding/Decoding
-// ============================================================================
+/* Base64 */
 
 static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -229,8 +208,7 @@ size_t base64_encode(const uint8_t *src, size_t src_len, char *dst) {
         dst[j++] = base64_table[(triple >> 6) & 0x3F];
         dst[j++] = base64_table[triple & 0x3F];
     }
-    
-    // Padding
+
     int mod = src_len % 3;
     if (mod == 1) {
         dst[j - 2] = '=';
@@ -269,9 +247,7 @@ size_t base64_decode(const char *src, uint8_t *dst, size_t dst_len) {
     return j;
 }
 
-// ============================================================================
-// RNG (utilise le bruit ADC comme source d'entropie)
-// ============================================================================
+/* PRNG (LCG seeded from ADC noise — for non-security uses only) */
 
 static uint32_t rng_state = 0xDEADBEEF;
 
@@ -280,7 +256,6 @@ void crypto_random_init(uint16_t adc_seed) {
 }
 
 uint32_t crypto_random_get(void) {
-    // Linear Congruential Generator (simple mais suffisant pour démo)
     rng_state = (rng_state * 1103515245 + 12345) & 0x7FFFFFFF;
     return rng_state;
 }
