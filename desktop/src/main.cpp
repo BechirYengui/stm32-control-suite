@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QDebug>
+#include <QThread>
 #include <cstring>
 #include "MainWindow.h"
 #include "DeviceController.h"
