@@ -178,7 +178,7 @@ void DeviceState::fromJson(const QJsonObject &json)
 
 QString DeviceState::toString() const
 {
-    return QString("DeviceState[Connected=%1, Temp=%.1f°C, Voltage=%.2fV, PWM=%2%%, LED=%3, Uptime=%4s]")
+    return QString("DeviceState[Connected=%1, Temp=%2°C, Voltage=%3V, PWM=%4%%, LED=%5, Uptime=%6s]")
         .arg(m_connected ? "Yes" : "No")
         .arg(m_temperature, 0, 'f', 1)
         .arg(m_voltage, 0, 'f', 2)
