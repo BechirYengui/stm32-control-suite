@@ -23,6 +23,7 @@ class DeviceState : public QObject
     Q_PROPERTY(quint32 uptime READ uptime WRITE setUptime NOTIFY uptimeChanged)
     Q_PROPERTY(quint32 rxCharCount READ rxCharCount WRITE setRxCharCount NOTIFY rxCharCountChanged)
     Q_PROPERTY(QString firmwareVersion READ firmwareVersion WRITE setFirmwareVersion NOTIFY firmwareVersionChanged)
+    Q_PROPERTY(QDateTime lastUpdate READ lastUpdate NOTIFY lastUpdateChanged)
 
 public:
     static constexpr uint8_t kMaxPwmDutyCycle = 100;
@@ -67,6 +68,7 @@ signals:
     void uptimeChanged(quint32 uptime);
     void rxCharCountChanged(quint32 count);
     void firmwareVersionChanged(const QString &version);
+    void lastUpdateChanged(const QDateTime &lastUpdate);
     void stateUpdated();
 
 private:

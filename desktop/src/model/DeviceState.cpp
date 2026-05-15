@@ -21,6 +21,7 @@ void DeviceState::setConnected(bool connected)
     if (m_connected != connected) {
         m_connected = connected;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit connectedChanged(connected);
         emit stateUpdated();
         
@@ -36,6 +37,7 @@ void DeviceState::setTemperature(float temp)
     if (qAbs(m_temperature - temp) > 0.01f) {
         m_temperature = temp;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit temperatureChanged(temp);
         emit stateUpdated();
     }
@@ -46,6 +48,7 @@ void DeviceState::setVoltage(float voltage)
     if (qAbs(m_voltage - voltage) > 0.001f) {
         m_voltage = voltage;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit voltageChanged(voltage);
         emit stateUpdated();
     }
@@ -56,6 +59,7 @@ void DeviceState::setAdcRaw(uint16_t raw)
     if (m_adcRaw != raw) {
         m_adcRaw = raw;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit adcRawChanged(raw);
         emit stateUpdated();
     }
@@ -71,6 +75,7 @@ void DeviceState::setPwmDutyCycle(uint8_t duty)
     if (m_pwmDutyCycle != duty) {
         m_pwmDutyCycle = duty;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit pwmDutyCycleChanged(duty);
         emit stateUpdated();
     }
@@ -81,6 +86,7 @@ void DeviceState::setLedState(bool state)
     if (m_ledState != state) {
         m_ledState = state;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit ledStateChanged(state);
         emit stateUpdated();
     }
@@ -91,6 +97,7 @@ void DeviceState::setUptime(quint32 uptime)
     if (m_uptime != uptime) {
         m_uptime = uptime;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit uptimeChanged(uptime);
         emit stateUpdated();
     }
@@ -101,6 +108,7 @@ void DeviceState::setRxCharCount(quint32 count)
     if (m_rxCharCount != count) {
         m_rxCharCount = count;
         m_lastUpdate = QDateTime::currentDateTime();
+        emit lastUpdateChanged(m_lastUpdate);
         emit rxCharCountChanged(count);
         emit stateUpdated();
     }
