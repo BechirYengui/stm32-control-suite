@@ -63,6 +63,11 @@ void DeviceState::setAdcRaw(uint16_t raw)
 
 void DeviceState::setPwmDutyCycle(uint8_t duty)
 {
+    if (duty > kMaxPwmDutyCycle) {
+        qWarning() << "[DeviceState] PWM duty cycle" << duty
+                   << "exceeds max" << kMaxPwmDutyCycle << ", clamping";
+        duty = kMaxPwmDutyCycle;
+    }
     if (m_pwmDutyCycle != duty) {
         m_pwmDutyCycle = duty;
         m_lastUpdate = QDateTime::currentDateTime();
@@ -174,6 +179,17 @@ void DeviceState::fromJson(const QJsonObject &json)
     
     if (json.contains("firmware_version"))
         setFirmwareVersion(json["firmware_version"].toString());
+}
+
+QString DeviceState::formattedUptime() const
+{
+    const quint32 hours   = m_uptime / 3600;
+    const quint32 minutes = (m_uptime % 3600) / 60;
+    const quint32 seconds = m_uptime % 60;
+    return QString("%1:%2:%3")
+        .arg(hours,   2, 10, QChar('0'))
+        .arg(minutes, 2, 10, QChar('0'))
+        .arg(seconds, 2, 10, QChar('0'));
 }
 
 QString DeviceState::toString() const

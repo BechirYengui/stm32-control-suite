@@ -25,6 +25,8 @@ class DeviceState : public QObject
     Q_PROPERTY(QString firmwareVersion READ firmwareVersion WRITE setFirmwareVersion NOTIFY firmwareVersionChanged)
 
 public:
+    static constexpr uint8_t kMaxPwmDutyCycle = 100;
+
     explicit DeviceState(QObject *parent = nullptr);
 
     bool isConnected() const { return m_connected; }
@@ -52,6 +54,8 @@ public:
     QJsonObject toJson() const;
     void fromJson(const QJsonObject &json);
     QString toString() const;
+
+    Q_INVOKABLE QString formattedUptime() const;
 
 signals:
     void connectedChanged(bool connected);
