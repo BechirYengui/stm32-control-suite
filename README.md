@@ -85,7 +85,7 @@ See the dedicated READMEs:
 
 ## Project History
 
-This monorepo is the consolidation of two repositories actively developed since September 2025 as part of my final-year apprenticeship at VEDECOM and post-apprenticeship personal projects:
+This monorepo is the consolidation of two repositories actively developed since September 2025 as personal projects:
 
 - **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)** (archived) — Qt desktop interface for STM32 control. Initial commits: September 2025. Superseded by `desktop/` in this repository.
 - **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)** (active) — STM32 secure bootloader with an RSA-2048 (PKCS#1 v1.5 / SHA-256) signature check and anti-rollback protection. Initial commits: September 2025. This remains the upstream for the `firmware/` directory, which is vendored here.
