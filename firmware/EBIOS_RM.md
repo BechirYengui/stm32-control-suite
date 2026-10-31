@@ -95,6 +95,23 @@ signature de l'image, flashage).
 | **ER4** | **Extraction du firmware** depuis la Flash (perte d'IP) | BM3 | **G2** |
 | **ER5** | **Mise hors service** (brique) via corruption de la racine de confiance | BM1, BM2 | **G3** |
 
+> **Justification des cotations de gravité :**
+> - **ER1 → G4 (Critique)** : l'exécution de code arbitraire est la **compromission
+>   totale** du produit (prise de contrôle, persistance), potentiellement reproductible
+>   sur **toute la flotte** partageant la même clé publique. C'est l'événement que le
+>   secure boot existe pour empêcher.
+> - **ER2 → G3 (Grave)** : un rollback réintroduit une faille **déjà connue** ; l'impact
+>   est réel mais **indirect** (il faut ensuite exploiter la faille) et borné aux cartes
+>   atteintes — grave sans être critique.
+> - **ER3 → G4 (Critique)** : la clé privée est le **secret racine** ; sa fuite permet de
+>   signer n'importe quelle image pour **toutes** les cartes et rend ER1 trivial. Gravité
+>   maximale, d'autant que la **révocation sur le terrain est difficile** (cf. Q15 / §5.3).
+> - **ER4 → G2 (Significative)** : perte de **confidentialité/IP** (reverse, clonage), mais
+>   **sans atteinte à l'intégrité d'exécution** : la carte continue de ne booter que du
+>   code signé. Impact patrimonial/image, pas sécurité fonctionnelle.
+> - **ER5 → G3 (Grave)** : atteinte à la **disponibilité** (produit briqué) ; coûteux et
+>   gênant, mais **pas d'exécution malveillante** — on dégrade, on ne détourne pas.
+
 ### 1.5 Socle de sécurité (référentiels)
 
 - **Guides ANSSI** sur le *secure boot* et l'administration des secrets (clés).
@@ -126,6 +143,23 @@ signature de l'image, flashage).
 > SR4 (physique invasif : *fault injection*, *glitching*, *decap*) est **explicitement
 > hors périmètre** du présent modèle logiciel, cohérent avec l'hypothèse de l'Atelier 1.
 
+> **Justification de la priorisation :**
+> - **SR3 (cybercriminel) — prioritaire** : c'est la seule source qui agit **à distance et
+>   à l'échelle**, via le canal de mise à jour. Combinaison coût modéré × impact G4 ×
+>   population large ⇒ pertinence maximale.
+> - **SR5 (interne / poste de signature) — prioritaire** : il **court-circuite toute la
+>   crypto embarquée** en obtenant une signature *légitime*. Faible vraisemblance brute
+>   mais impact G4 et aucune barrière technique côté MCU ⇒ à traiter en priorité.
+> - **SR1 (hobbyiste) — retenu** : coût très faible, outils publics (ST-Link), donc
+>   **forte accessibilité** ; vise surtout l'extraction/rollback opportuniste (gravité
+>   moindre), d'où un rôle de « bruit de fond » constant.
+> - **SR2 (concurrent) — retenu** : motivation **économique** claire sur un produit
+>   commercialisé (clonage) ; moyens moyens, cible l'IP (BM3).
+> - **SR4 (étatique) — partiellement** : capacités très fortes mais son mode opératoire
+>   privilégié (physique invasif) est **assumé hors périmètre** ; le retenir pleinement
+>   fausserait les cotations sans que le code puisse y répondre. On le mentionne pour la
+>   traçabilité de la décision.
+
 ---
 
 ## Atelier 3 — Scénarios stratégiques
@@ -145,6 +179,23 @@ signature de l'image, flashage).
 | Utilisateur final | Faible | Moyenne (accès physique carte) | Faible | Faible | **Moyen** |
 
 → **Parties prenantes critiques** : le **poste de signature/CI** et le **sous-traitant de flashage**. Ce sont les chemins qui permettent de contourner la racine de confiance *sans* casser la crypto.
+
+> **Justification des niveaux de danger :**
+> - **Poste de signature / CI (Élevé)** : il **détient la clé privée** (pénétration
+>   maximale) et on en dépend pour chaque release (dépendance forte). Sa maturité cyber
+>   est souvent **moyenne** (secrets dans des pipelines, postes dev). Le produit du
+>   « plus dépendant × plus pénétrant × moins mûr » donne le danger le plus élevé.
+> - **Sous-traitant de flashage (Élevé)** : il **écrit la racine de confiance** en usine ;
+>   une compromission à ce niveau rend toutes les protections aval **inopérantes**
+>   (il peut flasher un bootloader piégé). Maturité variable ⇒ danger élevé.
+> - **Fournisseur silicium ST (Faible)** : dépendance forte mais **pénétration quasi nulle**
+>   sur nos biens une fois la puce intégrée, et **maturité/confiance élevées**.
+> - **Distributeur / utilisateur final (Moyen)** : accès au **canal de MAJ** ou à la carte
+>   physique, mais sans accès aux secrets ; maturité faible ⇒ danger intermédiaire.
+>
+> *Principe EBIOS RM : on ne note pas la « méchanceté » d'une partie prenante mais le
+> **danger qu'elle fait porter** au système, combinaison de l'accès qu'elle a et de sa
+> solidité cyber.*
 
 ### 3.2 Scénarios stratégiques
 
@@ -217,6 +268,27 @@ cotée **compte tenu des mesures déjà en place** (crypto embarquée).
 - **Mesure manquante :** WRP sur la page bootloader.
 - **Vraisemblance :** **V2**. **Gravité :** G4 → **Risque : Élevé**.
 
+> **Justification des cotations de vraisemblance :**
+> - **SO-2 / SO-3 → V1** : exigent de **forger une signature RSA-2048** valide pour la clé
+>   publique embarquée. C'est **cryptographiquement infaisable** sans la clé privée ⇒
+>   vraisemblance minimale *malgré* une gravité G4. C'est ici que la crypto embarquée
+>   « paie » : elle n'abaisse pas la gravité mais **effondre la vraisemblance**.
+> - **SO-4 → V3** : la lecture de la Flash via ST-Link en **RDP niveau 0** est **triviale**
+>   (outils publics, quelques secondes). Rien dans le code ne l'empêche ⇒ vraisemblance
+>   forte. C'est le scénario **le plus facile à réaliser**, d'où sa priorité de traitement
+>   bien qu'il ne soit « que » G2.
+> - **SO-1 → V2** : le rollback demande un accès SWD/MAJ **et** le reflash d'une ancienne
+>   image signée ; l'anti-rollback le bloque, mais le compteur en **Flash reste effaçable**
+>   physiquement ⇒ faisable mais non trivial.
+> - **SO-5 → V2** : dépend de la **posture du poste de signature / CI** (hors MCU).
+>   Réaliste (phishing, secret exposé) sans être automatique ⇒ V2, mais **gravité G4** ⇒
+>   le risque monte à **Élevé**.
+> - **SO-6 → V2** : nécessite une **compromission ciblée** de la chaîne de production
+>   (flashage usine) ; peu d'acteurs, mais impact G4 sur la racine de confiance.
+>
+> *Règle appliquée : la vraisemblance est cotée **après** prise en compte des mesures
+> déjà présentes — c'est pourquoi les scénarios contrés par la signature tombent à V1.*
+
 ---
 
 ## Atelier 5 — Traitement du risque
@@ -231,6 +303,21 @@ cotée **compte tenu des mesures déjà en place** (crypto embarquée).
 | SO-4 Extraction IP | Moyen (G2×V3) | **RDP niveau 1/2** | Faible | Réduire |
 | SO-5 Clé privée | **Élevé** (G4×V2) | **HSM + rotation + révocation** | Moyen | Réduire (prioritaire) |
 | SO-6 Bootloader usine | **Élevé** (G4×V2) | **WRP** + flashage de confiance | Faible | Réduire (prioritaire) |
+
+> **Justification des décisions de traitement :**
+> - **Accepter (SO-2, SO-3)** : risque déjà **Moyen** et surtout porté par une vraisemblance
+>   **V1** qu'aucune mesure raisonnable n'améliorera (on ne « sécurise » pas plus que
+>   l'infaisabilité cryptographique). Le coût d'une mesure supplémentaire serait
+>   disproportionné ⇒ risque **accepté en l'état**.
+> - **Réduire en priorité (SO-5, SO-6)** : seuls risques **Élevés** ; ils visent la **clé**
+>   et la **racine de confiance**, c.-à-d. les points qui invalident *toute* la défense
+>   aval. Priorité maximale même si leur vraisemblance n'est « que » V2.
+> - **Réduire (SO-4, SO-1)** : risques **Moyens** mais à **vraisemblance élevée/moyenne** et
+>   à mesure **simple et peu coûteuse** (activer RDP, ancrer le compteur en OTP) ⇒ bon
+>   rapport réduction/effort, on traite.
+> - **Risque résiduel SO-5 = Moyen (et non Faible)** : même avec un HSM, la **révocation**
+>   d'une clé déjà déployée dans des bootloaders figés reste difficile ⇒ on **assume** un
+>   résiduel Moyen plutôt que de prétendre l'annuler.
 
 ### 5.2 Plan d'amélioration continue de la sécurité (mesures)
 
