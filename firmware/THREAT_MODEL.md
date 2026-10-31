@@ -4,6 +4,11 @@
 > code de vérification. Une protection qu'on n'a pas tenté de casser n'est qu'une
 > intention : chaque menace listée ici est éprouvée par un test automatisé
 > (voir la colonne « Preuve »).
+>
+> **Modèle technique (niveau produit).** Pour l'analyse de risque au niveau
+> système/organisationnel selon la méthode **EBIOS Risk Manager (ANSSI)**, voir
+> [`EBIOS_RM.md`](EBIOS_RM.md) (les menaces T1–T5 ci-dessous y alimentent les
+> scénarios opérationnels, cf. son annexe A).
 
 ## 1. Périmètre et biens à protéger
 

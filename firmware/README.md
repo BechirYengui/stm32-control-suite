@@ -274,6 +274,10 @@ What it **does not** (yet) provide — do not assume these:
   open. For production, enable RDP, lock debug, and use per-device keys stored in
   protected memory.
 
+Risk analysis: the technical threat model (menaces ↔ tests) is in
+[`THREAT_MODEL.md`](THREAT_MODEL.md); a system-level risk analysis following the
+**EBIOS Risk Manager (ANSSI)** method is in [`EBIOS_RM.md`](EBIOS_RM.md).
+
 ---
 
 ## Project structure
@@ -299,7 +303,8 @@ firmware/
 │   ├── test/
 │   └── platformio.ini
 │
-└── THREAT_MODEL.md                  # threat model notes
+├── THREAT_MODEL.md                  # technical threat model (STRIDE-style, test-backed)
+└── EBIOS_RM.md                      # EBIOS Risk Manager (ANSSI) risk analysis
 ```
 
 ---
