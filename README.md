@@ -8,11 +8,11 @@ End-to-end embedded system combining a secure STM32 firmware and a C++/Qt deskto
 
 ## Overview
 
-Active development since September 2025 — consolidated in May 2026 from two predecessor repositories: [qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32) and [stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application) (both archived). See [Project History](#project-history) for details.
+Active development since September 2025 — consolidated in May 2026 from the desktop predecessor [qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32) (archived). The secure firmware is developed in [stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application) and vendored here under `firmware/`. See [Project History](#project-history) for details.
 
 This monorepo contains two complementary projects:
 
-- **`firmware/`** — STM32F103 secure firmware: bootloader with CRC32 integrity verification, and application layer with AES-128-CBC encryption, HMAC-SHA256 authentication, and anti-replay protection.
+- **`firmware/`** — STM32F103 secure firmware: a bootloader that verifies the application with an **RSA-2048 (PKCS#1 v1.5 over SHA-256) signature** and **anti-rollback** protection (CRC32 is kept as an integrity guard), and an application layer exposing a JSON/TEXT command protocol over UART (LED, PWM, ADC).
 - **`desktop/`** — C++/Qt graphical interface to control and monitor the STM32 in real time over a serial link, with MVC architecture and JSON-based protocol.
 
 ## Architecture
@@ -21,8 +21,8 @@ This monorepo contains two complementary projects:
 ┌─────────────────────────┐         ┌──────────────────────────┐
 │    Desktop (Qt / C++)   │  UART   │      STM32F103           │
 │                         │ <─────> │                          │
-│  - MVC architecture     │  JSON   │  - Secure bootloader     │
-│  - QThread serial I/O   │ 115200  │  - Encrypted app layer   │
+│  - MVC architecture     │  JSON   │  - RSA-2048 secure boot  │
+│  - QThread serial I/O   │ 115200  │  - JSON/TEXT app layer   │
 │  - Real-time dashboards │         │  - Peripherals (LED/PWM) │
 └─────────────────────────┘         └──────────────────────────┘
 ```
@@ -66,8 +66,8 @@ stm32-control-suite/
 | Layer | Technologies |
 |-------|--------------|
 | Desktop | C++17, Qt 5.15+, CMake, QSerialPort, QThread, JSON |
-| Firmware | C, STM32 HAL, PlatformIO, mbedTLS, AES-128-CBC, HMAC-SHA256 |
-| Protocol | UART 115200 bps, JSON framing, encrypted payload |
+| Firmware | C, STM32 HAL, PlatformIO, RSA-2048 (PKCS#1 v1.5), SHA-256, anti-rollback, CRC32 |
+| Protocol | UART 115200 bps, JSON/TEXT framing |
 
 ## Getting Started
 
@@ -79,7 +79,7 @@ See the dedicated READMEs:
 ## Project Highlights
 
 - **Modern C++ architecture**: MVC, RAII, STL, smart pointers, multi-threading
-- **Embedded security**: secure boot chain, encrypted communication, replay protection
+- **Embedded security**: RSA-2048 signed secure boot chain, SHA-256 image hashing, anti-rollback counter
 - **Production-grade tooling**: CMake, PlatformIO, unit tests, Doxygen documentation
 - **Cross-disciplinary**: hardware-level firmware to desktop UI, end-to-end ownership
 
@@ -87,10 +87,10 @@ See the dedicated READMEs:
 
 This monorepo is the consolidation of two repositories actively developed since September 2025 as part of my final-year apprenticeship at VEDECOM and post-apprenticeship personal projects:
 
-- **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)** (archived May 2026) — Qt desktop interface for STM32 control. Initial commits: September 2025.
-- **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)** (archived May 2026) — STM32 secure bootloader with AES-128-CBC, HMAC-SHA256, and anti-replay protection. Initial commits: September 2025.
+- **[qt_interface_stm32](https://github.com/BechirYengui/qt_interface_stm32)** (archived) — Qt desktop interface for STM32 control. Initial commits: September 2025. Superseded by `desktop/` in this repository.
+- **[stm32_bootloader-application](https://github.com/BechirYengui/stm32_bootloader-application)** (active) — STM32 secure bootloader with an RSA-2048 (PKCS#1 v1.5 / SHA-256) signature check and anti-rollback protection. Initial commits: September 2025. This remains the upstream for the `firmware/` directory, which is vendored here.
 
-The current monorepo (May 2026) unifies both subsystems under a shared structure with consistent build tooling and documentation. The archived repositories remain publicly accessible and preserve the original development history.
+The monorepo unifies both subsystems under a shared structure with consistent build tooling and documentation. The archived desktop repository remains publicly accessible and preserves the original development history; the firmware stays maintained in its own repository and is mirrored here.
 
 ## License
 

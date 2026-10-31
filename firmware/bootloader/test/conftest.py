@@ -3,9 +3,31 @@ Configuration pytest globale pour tests bootloader
 Fixtures réutilisables pour tous les tests
 """
 
+import sys
 import pytest
 import ctypes
 from pathlib import Path
+
+# Rend les outils (rsa_c_key.py) importables depuis les tests
+TOOLS_DIR = Path(__file__).parent.parent / 'tools'
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
+
+
+# ============================================================================
+# Structure ctypes miroir de RSAPublicKey (lib/crypto/rsa_light.h)
+# ============================================================================
+
+RSA_NUM_WORDS = 64
+
+
+class RSAPublicKey(ctypes.Structure):
+    _fields_ = [
+        ("len", ctypes.c_int),
+        ("n0inv", ctypes.c_uint32),
+        ("n", ctypes.c_uint32 * RSA_NUM_WORDS),
+        ("rr", ctypes.c_uint32 * RSA_NUM_WORDS),
+    ]
 
 
 # ============================================================================
@@ -39,8 +61,63 @@ def bootloader_lib():
         ctypes.POINTER(ctypes.c_uint8)
     ]
     lib.sha256_hash.restype = None
-    
+
+    # Configure la vérification de signature RSA-2048 PKCS#1 v1.5
+    lib.rsa_pkcs1_sha256_verify.argtypes = [
+        ctypes.POINTER(RSAPublicKey),
+        ctypes.POINTER(ctypes.c_uint8),
+        ctypes.c_size_t,
+        ctypes.POINTER(ctypes.c_uint8),
+    ]
+    lib.rsa_pkcs1_sha256_verify.restype = ctypes.c_int
+
+    # Configure l'anti-rollback
+    lib.antirollback_normalize.argtypes = [ctypes.c_uint32]
+    lib.antirollback_normalize.restype = ctypes.c_uint32
+    lib.antirollback_allowed.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
+    lib.antirollback_allowed.restype = ctypes.c_uint8
+    lib.antirollback_should_commit.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
+    lib.antirollback_should_commit.restype = ctypes.c_uint8
+
     return lib
+
+
+# ============================================================================
+# Fixtures: Clé RSA de test + helpers de signature
+# ============================================================================
+
+@pytest.fixture(scope="session")
+def rsa_private_key():
+    """Paire de clés RSA-2048 éphémère (jamais écrite sur disque)."""
+    crypto = pytest.importorskip("cryptography")  # skip propre si absent
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
+@pytest.fixture(scope="session")
+def c_public_key(rsa_private_key):
+    """Construit un RSAPublicKey (ctypes) à partir de la clé de test."""
+    from rsa_c_key import c_key_fields
+    n = rsa_private_key.public_key().public_numbers().n
+    f = c_key_fields(n)
+    return RSAPublicKey(
+        RSA_NUM_WORDS,
+        f["n0inv"],
+        (ctypes.c_uint32 * RSA_NUM_WORDS)(*f["n"]),
+        (ctypes.c_uint32 * RSA_NUM_WORDS)(*f["rr"]),
+    )
+
+
+@pytest.fixture
+def sign_firmware(rsa_private_key):
+    """Retourne une fonction qui signe des octets (RSA-2048 PKCS#1 v1.5 / SHA-256)."""
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import padding
+
+    def _sign(data: bytes) -> bytes:
+        return rsa_private_key.sign(data, padding.PKCS1v15(), hashes.SHA256())
+
+    return _sign
 
 
 # ============================================================================

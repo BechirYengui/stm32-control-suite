@@ -3,3 +3,13 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Secure Boot : clés de signature — NE JAMAIS committer la clé privée
+keys/
+*.pem
+
+# Artefacts de tests
+test/bindings/*.so
+test/bindings/compile.log
+**/__pycache__/
+.pytest_cache/

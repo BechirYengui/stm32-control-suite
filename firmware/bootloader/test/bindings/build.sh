@@ -6,12 +6,15 @@ set -e
 echo "🔨 Compilation des bindings C du bootloader..."
 echo ""
 
-# Compile crypto_test.c en bibliothèque partagée
+# Compile crypto_test.c + la vraie vérif RSA + l'anti-rollback en lib partagée
 gcc -shared -fPIC -O2 \
     -DTEST_BUILD \
     -I../../lib/crypto \
+    -I../../lib/boot \
     -o libbootloader.so \
     crypto_test.c \
+    ../../lib/crypto/rsa_light.c \
+    ../../lib/boot/antirollback.c \
     2>&1 | tee compile.log
 
 if [ $? -eq 0 ]; then

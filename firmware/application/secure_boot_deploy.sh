@@ -14,7 +14,7 @@ NC='\033[0m'
 
 # Chemins
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BOOTLOADER_DIR="$(dirname "$SCRIPT_DIR")/stm32_secure_bootloader"
+BOOTLOADER_DIR="$(dirname "$SCRIPT_DIR")/bootloader"
 APPLICATION_DIR="$SCRIPT_DIR"
 
 # ============================================================================
