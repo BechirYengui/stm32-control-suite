@@ -1,12 +1,34 @@
-# Analyse de risque EBIOS Risk Manager — Secure Boot STM32F103
+# Analyse de risque — EBIOS Risk Manager
+### Système de *secure boot* STM32F103 et chaîne de signature
 
-> Analyse de risque conduite selon la méthode **EBIOS Risk Manager (ANSSI)**, appliquée
-> au système de *secure boot* du STM32F103 et à sa chaîne de signature/déploiement.
->
-> Ce document se place **au niveau système/organisationnel** : il complète le
-> [`THREAT_MODEL.md`](THREAT_MODEL.md), qui est un modèle de menaces **technique**
-> (orienté produit, type STRIDE, chaque menace adossée à un test). La correspondance
-> entre les deux est donnée en [annexe A](#annexe-a--correspondance-ebios-rm--modèle-de-menaces-technique).
+| | |
+|---|---|
+| **Objet** | Analyse de risque du secure boot STM32F103 (racine de confiance, firmware signé) et de sa chaîne de signature/déploiement |
+| **Méthode** | EBIOS Risk Manager — ANSSI (5 ateliers) |
+| **Auteur** | Bechir Yengui |
+| **Version** | 1.0 |
+| **Date** | 2026-10-31 |
+| **Classification** | Interne — démonstration / portfolio |
+| **Statut** | Analyse individuelle (hors atelier collectif — cf. [annexe B](#annexe-b--limites-de-cette-analyse)) |
+| **Documents liés** | [`THREAT_MODEL.md`](THREAT_MODEL.md) (modèle de menaces technique, type STRIDE, adossé à des tests) |
+
+> **Positionnement.** Ce document se place au **niveau système/organisationnel** (biens,
+> sources de risque, écosystème, scénarios). Il **complète** le modèle de menaces technique
+> `THREAT_MODEL.md` (niveau produit) ; la correspondance entre les deux est donnée en
+> [annexe A](#annexe-a--correspondance-ebios-rm--modèle-de-menaces-technique).
+
+---
+
+## Sommaire
+
+- [Préambule — méthode et échelles](#préambule--méthode-et-échelles)
+- [Atelier 1 — Cadrage et socle de sécurité](#atelier-1--cadrage-et-socle-de-sécurité)
+- [Atelier 2 — Sources de risque et objectifs visés](#atelier-2--sources-de-risque-et-objectifs-visés)
+- [Atelier 3 — Scénarios stratégiques](#atelier-3--scénarios-stratégiques) *(fig. 1 écosystème, fig. 2 chemins d'attaque)*
+- [Atelier 4 — Scénarios opérationnels](#atelier-4--scénarios-opérationnels)
+- [Atelier 5 — Traitement du risque](#atelier-5--traitement-du-risque) *(fig. 3 matrice de risque)*
+- [Annexe A — Correspondance EBIOS RM ↔ modèle technique](#annexe-a--correspondance-ebios-rm--modèle-de-menaces-technique)
+- [Annexe B — Limites de cette analyse](#annexe-b--limites-de-cette-analyse)
 
 ---
 
@@ -180,6 +202,26 @@ signature de l'image, flashage).
 
 → **Parties prenantes critiques** : le **poste de signature/CI** et le **sous-traitant de flashage**. Ce sont les chemins qui permettent de contourner la racine de confiance *sans* casser la crypto.
 
+**Figure 1 — Cartographie de l'écosystème.** Position selon l'**exposition/pénétration**
+(axe X) et la **fiabilité cyber** (axe Y). Le quadrant en bas à droite (forte exposition ×
+faible fiabilité) est la **zone de danger** : on y retrouve les parties prenantes critiques.
+
+```mermaid
+quadrantChart
+    title Danger des parties prenantes (zone critique = bas-droite)
+    x-axis "Exposition / penetration faible" --> "forte"
+    y-axis "Fiabilite cyber faible" --> "forte"
+    quadrant-1 "Maitrise"
+    quadrant-2 "Veille"
+    quadrant-3 "Surveillance"
+    quadrant-4 "DANGER"
+    "Poste de signature / CI": [0.85, 0.40]
+    "Sous-traitant flashage": [0.80, 0.33]
+    "Distributeur / integrateur": [0.55, 0.45]
+    "Utilisateur final": [0.50, 0.30]
+    "Fournisseur silicium (ST)": [0.22, 0.85]
+```
+
 > **Justification des niveaux de danger :**
 > - **Poste de signature / CI (Élevé)** : il **détient la clé privée** (pénétration
 >   maximale) et on en dépend pour chaque release (dépendance forte). Sa maturité cyber
@@ -205,6 +247,34 @@ signature de l'image, flashage).
 | **SS2** | Un attaquant exploite le **canal de mise à jour** pour pousser une image (malveillante ou ancienne) vers le MCU. | SR3 | ER1, ER2 | **G4 / G3** |
 | **SS3** | Un attaquant à **accès physique** (SWD) lit la Flash et/ou reflashe une image. | SR1, SR2 | ER4, ER2, ER5 | **G2 / G3** |
 | **SS4** | Un attaquant compromet le **sous-traitant de flashage** et altère le bootloader (racine de confiance) en usine. | SR5 | ER1, ER5 | **G4** |
+
+**Figure 2 — Synthèse des chemins d'attaque.** Des sources de risque (SR) vers les
+événements redoutés (ER), via les scénarios stratégiques (SS). Deux chemins mènent à
+l'événement critique ER1 (firmware non authentique).
+
+```mermaid
+flowchart LR
+    SR5["SR5 Interne / signature"] --> SS1
+    SR3["SR3 Cybercriminel"] --> SS2
+    SR5 --> SS4
+    SR1["SR1 Hobbyiste"] --> SS3
+    SR2["SR2 Concurrent"] --> SS3
+
+    SS1["SS1 Poste de signature"] --> ER1
+    SS1 --> ER3
+    SS2["SS2 Canal de MAJ"] --> ER1
+    SS2 --> ER2
+    SS3["SS3 Acces physique SWD"] --> ER4
+    SS3 --> ER2
+    SS4["SS4 Bootloader usine"] --> ER1
+    SS4 --> ER5
+
+    ER1["ER1 Firmware non authentique (G4)"]
+    ER2["ER2 Rollback (G3)"]
+    ER3["ER3 Fuite cle privee (G4)"]
+    ER4["ER4 Extraction IP (G2)"]
+    ER5["ER5 Brique (G3)"]
+```
 
 ---
 
@@ -303,6 +373,27 @@ cotée **compte tenu des mesures déjà en place** (crypto embarquée).
 | SO-4 Extraction IP | Moyen (G2×V3) | **RDP niveau 1/2** | Faible | Réduire |
 | SO-5 Clé privée | **Élevé** (G4×V2) | **HSM + rotation + révocation** | Moyen | Réduire (prioritaire) |
 | SO-6 Bootloader usine | **Élevé** (G4×V2) | **WRP** + flashage de confiance | Faible | Réduire (prioritaire) |
+
+**Figure 3 — Matrice de risque initiale** (gravité × vraisemblance). Haut-droite =
+critique. **SO-5** et **SO-6** ressortent en zone Élevé ; **SO-4** est « modéré mais
+facile » (forte vraisemblance), d'où son traitement malgré une gravité G2.
+
+```mermaid
+quadrantChart
+    title Risque initial (avant mesures a ajouter)
+    x-axis "Vraisemblance faible (V1)" --> "forte (V4)"
+    y-axis "Gravite faible (G1)" --> "critique (G4)"
+    quadrant-1 "Risque critique"
+    quadrant-2 "Surveiller (gravite haute)"
+    quadrant-3 "Risque faible"
+    quadrant-4 "Traiter (facile, frequent)"
+    "SO-5 Cle privee": [0.52, 0.90]
+    "SO-6 Bootloader usine": [0.48, 0.87]
+    "SO-2 Alteration": [0.20, 0.85]
+    "SO-3 Substitution": [0.15, 0.82]
+    "SO-1 Rollback": [0.45, 0.60]
+    "SO-4 Extraction IP": [0.70, 0.40]
+```
 
 > **Justification des décisions de traitement :**
 > - **Accepter (SO-2, SO-3)** : risque déjà **Moyen** et surtout porté par une vraisemblance
